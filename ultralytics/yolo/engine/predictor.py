@@ -272,7 +272,7 @@ class BasePredictor:
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
             self.batch = batch
-            path, im0s, vid_cap, s = batch
+            path, im0s, vid_cap, s, frame_number = batch
 
             # Preprocess
             with profilers[0]:
@@ -300,7 +300,7 @@ class BasePredictor:
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, self.results, (p, im, im0))
+                    s += self.write_results(i, self.results, (p, im, im0), frame_number)
 
                 if self.args.save or self.args.save_txt:
                     self.results[i].save_dir = self.save_dir.__str__()

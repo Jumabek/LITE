@@ -34,7 +34,17 @@ if [ -z "$DATASET" ] || [ -z "$SPLIT" ]; then
     usage
 fi
 
-BASE_CMD="python3 run.py --dataset ${DATASET} --split ${SPLIT}"
+CMD="python3 run.py \
+        --dataset ${DATASET} \
+        --split ${SPLIT} \
+        --input_resolution ${INPUT_RESOLUTION} \
+        --min_confidence ${MIN_CONFIDENCE}"
+
+CMD_YOLO_TRACKING="python3 yolo_tracking/tracking/run.py
+        --dataset ${DATASET} \
+        --split ${SPLIT} \
+        --imgsz ${INPUT_RESOLUTION} \
+        --conf ${MIN_CONFIDENCE}"
 
 run_tracker() {
     TRACKER_NAME=$1
@@ -44,20 +54,37 @@ run_tracker() {
     DIR_SAVE="results/${DATASET}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${MIN_CONFIDENCE}"
     mkdir -p "${DIR_SAVE}"
 
-    CMD_OPTIONS="--dir_save ${DIR_SAVE} --input_resolution ${INPUT_RESOLUTION} --min_confidence ${MIN_CONFIDENCE}"
 
     case ${TRACKER_NAME} in
         "SORT")
-            ${BASE_CMD} --tracker_name "SORT" ${CMD_OPTIONS}
+            ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE}
             ;;
         "LITEDeepSORT")
-            ${BASE_CMD} --tracker_name "LITEDeepSORT" ${CMD_OPTIONS} --woC --appearance_feature_layer "layer0"
+            ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer0" --dir_save ${DIR_SAVE}
             ;;
         "DeepSORT")
-            ${BASE_CMD} --tracker_name "DeepSORT" ${CMD_OPTIONS}
+            ${CMD} --tracker_name "DeepSORT" --dir_save ${DIR_SAVE}
             ;;
         "StrongSORT")
-            ${BASE_CMD} --tracker_name "StrongSORT" ${CMD_OPTIONS} --BoT --ECC --NSA --EMA --MC --woC
+            ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE}
+            ;;
+        "OCSORT")
+            ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project ${DIR_SAVE}
+            ;;
+        "Bytetrack")
+            ${CMD_YOLO_TRACKING} --tracking-method "bytetrack" --project ${DIR_SAVE}
+            ;;
+        "DeepOCSORT")
+            ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE}
+            ;;
+        "LITEDeepOCSORT")
+            ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
+            ;;
+        "BoTSORT")
+            ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
+            ;;
+        "LITEBotSORT")  
+            ${BASE_CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
             ;;
         *)
             echo "Invalid tracker name"
@@ -67,8 +94,7 @@ run_tracker() {
     echo "Experiment completed for ${TRACKER_NAME}!"
 }
 
-# TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT")
-TRACKERS=("StrongSORT")
+TRACKERS=("StrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBotSORT")
 
 for TRACKER in "${TRACKERS[@]}"; do
     run_tracker "${TRACKER}"

@@ -3,6 +3,7 @@ __pycache__/
 *.pt
 
 fastreid/
+yolo_tracking/
 
 checkpoints/
 
