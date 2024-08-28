@@ -7,6 +7,14 @@
 
 ## Experiments Settings
 
+### Environment
+
+```bash
+python -m venv myenv
+source myenv/bin/activate
+pip install -r requirements.txt
+```
+
 ### Datasets
 
 Download our prepared [datasets](https://drive.google.com/drive/folders/1hlX2n5FVFGXOJrQMVSxnSmSNW7TM_BZ3) and put them under LITE/datasets in the following structure:
@@ -26,7 +34,7 @@ datasets
 
 ### Checkpoints
 
-Download [checkpoints]()
+<!-- Download [checkpoints]() -->
 ```bash
 bash scripts/prepare_checkpoints.sh
 ```
