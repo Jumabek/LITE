@@ -83,8 +83,8 @@ run_tracker() {
         "BoTSORT")
             ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
             ;;
-        "LITEBotSORT")  
-            ${BASE_CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
+        "LITEBoTSORT")  
+            ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
             ;;
         *)
             echo "Invalid tracker name"
@@ -94,7 +94,7 @@ run_tracker() {
     echo "Experiment completed for ${TRACKER_NAME}!"
 }
 
-TRACKERS=("StrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBotSORT")
+TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
 
 for TRACKER in "${TRACKERS[@]}"; do
     run_tracker "${TRACKER}"
