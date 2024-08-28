@@ -1,5 +1,6 @@
 # vim: expandtab:ts=4:sw=4
 import numpy as np
+from . import linear_assignment
 
 
 def _pdist(a, b):
@@ -94,7 +95,8 @@ def _nn_cosine_distance(x, y):
         smallest cosine distance to a sample in `x`.
 
     """
-    distances = _cosine_distance(x, y)
+    distances = _cosine_distance(
+        x, y)  # x is (n,emb_dim) embedding for a single track), y is embeddings for all current detections (1 embedding per detection)
     return distances.min(axis=0)
 
 
@@ -123,7 +125,6 @@ class NearestNeighborDistanceMetric(object):
     """
 
     def __init__(self, metric, matching_threshold, budget=None):
-
 
         if metric == "euclidean":
             self._metric = _nn_euclidean_distance
@@ -175,5 +176,8 @@ class NearestNeighborDistanceMetric(object):
         """
         cost_matrix = np.zeros((len(targets), len(features)))
         for i, target in enumerate(targets):
+            if target not in self.samples or self.samples[target] == []:
+                cost_matrix[i, :] = linear_assignment.INFTY_COST
+                continue
             cost_matrix[i, :] = self._metric(self.samples[target], features)
         return cost_matrix

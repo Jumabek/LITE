@@ -1,3 +1,11 @@
 myenv/
 __pycache__/
 *.pt
+
+fastreid/
+
+checkpoints/
+
+datasets/
+
+results/
