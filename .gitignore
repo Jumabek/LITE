@@ -1,6 +1,7 @@
 myenv/
 __pycache__/
 *.pt
+.vscode/
 
 fastreid/
 yolo_tracking/
