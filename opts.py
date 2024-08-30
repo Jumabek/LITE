@@ -205,6 +205,10 @@ class opts:
             type=str,
             default='cuda:0'
         )
+        self.parser.add_argument(
+            '--sequence',
+            type=str,
+        )
 
     def parse(self, args=''):
         if args == '':

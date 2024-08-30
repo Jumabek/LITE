@@ -3,11 +3,15 @@
 
 ## Demo
 
-`python lite_deepsort_demo.py --source  demo/VIRAT_S_010204_07_000942_000989.mp4`
+```bash
+python lite_deepsort_demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
+```
 
 ## Experiments Settings
 
 ### Environment
+
+We use `Python 3.10.12` 
 
 ```bash
 python -m venv myenv
@@ -50,7 +54,7 @@ bash scripts/setup_fastreid.sh
 ```bash
 git clone https://github.com/humblebeeintel/yolo_tracking.git
 cd yolo_tracking
-pip install requirements_new.txt
+pip install requirements.txt
 ```
 
 ## Running Experiments
@@ -59,6 +63,14 @@ Use the following command to run experiments with different datasets and splits:
 
 ```bash
 bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT>
+```
+
+## Running FPS Experiments
+
+Use the following command to run fps experiment with specific sequence from datasets:
+
+```bash
+bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
 
