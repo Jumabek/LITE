@@ -1,15 +1,7 @@
 
 # LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration
 
-## Demo
-
-```bash
-python lite_deepsort_demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
-```
-
-## Experiments Settings
-
-### Environment
+## Environment
 
 We use `Python 3.10.12` 
 
@@ -18,6 +10,14 @@ python -m venv myenv
 source myenv/bin/activate
 pip install -r requirements.txt
 ```
+
+## Demo
+
+```bash
+python lite_deepsort_demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
+```
+
+## Experiments Settings
 
 ### Datasets
 
@@ -53,8 +53,6 @@ bash scripts/setup_fastreid.sh
 
 ```bash
 git clone https://github.com/humblebeeintel/yolo_tracking.git
-cd yolo_tracking
-pip install requirements.txt
 ```
 
 ## Running Experiments
