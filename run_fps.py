@@ -31,20 +31,20 @@ def process_sequence(seq):
     time_spent_for_the_sequence = tock - tick
 
     avg_time_per_frame = (time_spent_for_the_sequence) / num_frames
-    
+
     FPS = 1/avg_time_per_frame
 
     path_to_fps_csv = f'results/{sequence_dir.split("/")[1]}-FPS/{opt.sequence}/fps.csv'
 
     if not os.path.exists(path_to_fps_csv):
         with open(path_to_fps_csv, 'w') as f:
-            f.write('tracker_name,sequence_name,FPS\n')
-        
+            f.write('tracker_name,sequence_name,FPS,conf\n')
+
     with open(path_to_fps_csv, 'a') as f:
-        f.write(f'{opt.tracker_name},{seq},{FPS:.1f}\n')
+        f.write(f'{opt.tracker_name},{seq},{FPS:.1f},{opt.min_confidence}\n')
     print(f'Finished video {seq}')
 
 
 if __name__ == '__main__':
-    
+
     process_sequence(opt.sequence)
