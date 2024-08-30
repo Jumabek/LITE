@@ -45,6 +45,14 @@ bash scripts/prepare_checkpoints.sh
 bash scripts/setup_fastreid.sh
 ```
 
+### yolo_tracking
+
+```bash
+git clone https://github.com/humblebeeintel/yolo_tracking.git
+cd yolo_tracking
+pip install requirements_new.txt
+```
+
 ## Running Experiments
 
 Use the following command to run experiments with different datasets and splits:
