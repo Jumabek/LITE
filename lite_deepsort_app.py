@@ -275,6 +275,8 @@ def run(sequence_dir, output_file, min_confidence,
         opt.max_cosine_distance,
         nn_budget
     )
+    tick = time.time()
+
     tracker = Tracker(metric, max_age=opt.max_age)
     results = []
     model = YOLO("yolov8m.pt")
@@ -288,7 +290,6 @@ def run(sequence_dir, output_file, min_confidence,
     elif opt.tracker_name == 'LITEDeepSORT':
         pass  # ReID features are extracted for free from detector itself in LITEDeepSORT
 
-    tick = time.time()
     if verbose:
         print(f"Processing \n")
     # inner function
