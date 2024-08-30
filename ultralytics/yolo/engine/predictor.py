@@ -328,10 +328,9 @@ class BasePredictor:
                         f'{(1, 3, *im.shape[2:])}' % t)
         if self.args.save or self.args.save_txt or self.args.save_crop:
             # number of labels
-            nl = len(list(self.save_dir.glob('labels/*.txt')))
-            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
+            s = f"\nResults saved to {colorstr('bold', self.save_dir / 'data')}" if self.args.save_txt else ''
             LOGGER.info(
-                f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+                f"{s}")
 
         self.run_callbacks('on_predict_end')
 
