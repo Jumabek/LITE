@@ -30,10 +30,13 @@ datasets
    |     └———test
    └———PersonPath22
    |     └———test
-   └———
-         └———
-         └———
-         └———
+   └———VIRAT-S
+   |     └———train
+   └———KITTI
+         └———train
+         └———test
+
+ 
 ```
 
 ### Checkpoints
