@@ -1,5 +1,11 @@
 
-# LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration
+# LITE
+
+> [**LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration**](http://www.arxiv.org/abs/2409.04187)
+> 
+> Jumabek Alikhanov, Dilshod Obidov, Hakil Kim
+> 
+> *[arXiv 2409.04187](http://www.arxiv.org/abs/2409.04187)*
 
 ## Environment
 
