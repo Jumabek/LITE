@@ -209,6 +209,12 @@ class opts:
             '--sequence',
             type=str,
         )
+        self.parser.add_argument(
+            '--solution',
+            type=str,
+            default='object_counter',
+            help='object_counter, heatmap, etc.'
+        )
 
     def parse(self, args=''):
         if args == '':

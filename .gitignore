@@ -11,3 +11,5 @@ checkpoints/
 datasets/
 
 results/
+videos/
+demo_output_videos/
