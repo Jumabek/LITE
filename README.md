@@ -71,6 +71,18 @@ Use the following command to run fps experiment with specific sequence from data
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
+# Solutions demo with LITEDeepSORT
+
+```bash
+bash demo/download_solutions_demo_videos.sh
+```
+
+```bash
+python lite_deepsort_solutions_demo.py \
+--source videos/shortened_enterance.mp4 \
+--solution object_counter
+           heatmap
+```
 
 # Multi Object Tracking made easy and accessible
 
