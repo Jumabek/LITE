@@ -20,7 +20,7 @@ def process_video(video_path):
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolov8m.pt")
     print(model.info(verbose=True))
 
     nms_max_overlap = 1.0
