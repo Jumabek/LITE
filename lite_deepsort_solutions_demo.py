@@ -20,7 +20,7 @@ def process_video(video_path):
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolov8m.pt")
     print(model.info(verbose=True))
 
     nms_max_overlap = 1.0
@@ -39,6 +39,9 @@ def process_video(video_path):
     # Define region points
     # region_points = [(750, 700), (1200, 700), (1250, 400), (1150, 300)]
     region_points = [(850, 700), (1250, 300)]
+
+    # Path to json file, that created with above point selection app
+    polygon_json_path = "videos/bounding_boxes.json"
 
     output_dir = "demo_output_videos"
     os.makedirs(output_dir, exist_ok=True)
@@ -61,6 +64,9 @@ def process_video(video_path):
     names=model.names,
     )
 
+    management = solutions.ParkingManagement(
+        model_path="yolov8m.pt"
+    )
 
 
     while True:
@@ -71,8 +77,9 @@ def process_video(video_path):
         frame_number += 1  
 
         # Process each frame
+        classes = [2] if opt.solution == "parking_management" else [0]
         yolo_results = model.predict(
-            frame, classes=[0], verbose=False, imgsz=1280, appearance_feature_layer='layer0', conf=.25)
+            frame, classes=classes, verbose=False, imgsz=1280, appearance_feature_layer='layer0', conf=.25)
 
         boxes = yolo_results[0].boxes.data.cpu().numpy()
 
@@ -98,15 +105,15 @@ def process_video(video_path):
 
         tracker.predict()
         tracker.update(detections)
-   
-        if not ret:
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
 
         if opt.solution == "object_counter":
             frame = counter.start_counting(frame, tracker.tracks)
         elif opt.solution == "heatmap":
             frame = heatmap_obj.generate_heatmap(frame, tracker.tracks)
+        elif opt.solution == "parking_management":
+            json_data = management.parking_regions_extraction(polygon_json_path)
+            management.process_data(json_data, frame, tracker.tracks)
+            management.display_frames(frame)
 
         video_writer.write(frame)
 

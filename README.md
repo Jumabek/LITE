@@ -88,12 +88,21 @@ bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```bash
 bash demo/download_solutions_demo_videos.sh
 ```
+### Object Counter & Heatmap
 
 ```bash
 python lite_deepsort_solutions_demo.py \
 --source videos/shortened_enterance.mp4 \
 --solution object_counter
            heatmap
+```
+
+### Parking Management
+
+```bash
+python lite_deepsort_solutions_demo.py \
+--source videos/parking.mp4 \
+--solution parking_management
 ```
 
 # Multi Object Tracking made easy and accessible
