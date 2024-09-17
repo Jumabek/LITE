@@ -147,70 +147,66 @@ class ObjectCounter:
         self.annotator.draw_region(reg_pts=self.reg_pts, color=self.region_color, thickness=self.region_thickness)
 
 
-        if tracks[0].track_id is not None:
-            # Extract tracks
-            for i in range(len(tracks)):
+        for track in tracks:
 
-                track = tracks[i]
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
 
-                if not track.is_confirmed() or track.time_since_update > 1:
-                    continue
+            box, track_id, cls = track.to_tlbr(), track.track_id, 0
+            # Draw bounding box
+            self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
 
-                box, track_id, cls = track.to_tlbr(), track.track_id, 0
-                # Draw bounding box
-                self.annotator.box_label(box, label=f"{self.names[cls]}#{track_id}", color=colors(int(track_id), True))
+            # Store class info
+            if self.names[cls] not in self.class_wise_count:
+                self.class_wise_count[self.names[cls]] = {"IN": 0, "OUT": 0}
 
-                # Store class info
-                if self.names[cls] not in self.class_wise_count:
-                    self.class_wise_count[self.names[cls]] = {"IN": 0, "OUT": 0}
+            # Draw Tracks
+            track_line = self.track_history[track_id]
+            track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
+            if len(track_line) > 30:
+                track_line.pop(0)
 
-                # Draw Tracks
-                track_line = self.track_history[track_id]
-                track_line.append((float((box[0] + box[2]) / 2), float((box[1] + box[3]) / 2)))
-                if len(track_line) > 30:
-                    track_line.pop(0)
+            # Draw track trails
+            if self.draw_tracks:
+                self.annotator.draw_centroid_and_tracks(
+                    track_line,
+                    color=self.track_color or colors(int(track_id), True),
+                    track_thickness=self.track_thickness,
+                )
 
-                # Draw track trails
-                if self.draw_tracks:
-                    self.annotator.draw_centroid_and_tracks(
-                        track_line,
-                        color=self.track_color or colors(int(track_id), True),
-                        track_thickness=self.track_thickness,
-                    )
+            prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
 
-                prev_position = self.track_history[track_id][-2] if len(self.track_history[track_id]) > 1 else None
+            # Count objects in any polygon
+            if len(self.reg_pts) >= 3:
+                is_inside = self.counting_region.contains(Point(track_line[-1]))
 
-                # Count objects in any polygon
-                if len(self.reg_pts) >= 3:
-                    is_inside = self.counting_region.contains(Point(track_line[-1]))
+                if prev_position is not None and is_inside and track_id not in self.count_ids:
+                    self.count_ids.append(track_id)
 
-                    if prev_position is not None and is_inside and track_id not in self.count_ids:
+                    if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
+                        self.in_counts += 1
+                        self.class_wise_count[self.names[cls]]["IN"] += 1
+                    else:
+                        self.out_counts += 1
+                        self.class_wise_count[self.names[cls]]["OUT"] += 1
+
+            # Count objects using line
+            elif len(self.reg_pts) == 2:
+                if prev_position is not None and track_id not in self.count_ids:
+                    distance = Point(track_line[-1]).distance(self.counting_region)
+                    if distance < self.line_dist_thresh and track_id not in self.count_ids:
                         self.count_ids.append(track_id)
 
                         if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                            self.in_counts += 1
-                            self.class_wise_count[self.names[cls]]["IN"] += 1
-                        else:
+                            # self.in_counts += 1
+                            # self.class_wise_count[self.names[cls]]["IN"] += 1
                             self.out_counts += 1
                             self.class_wise_count[self.names[cls]]["OUT"] += 1
-
-                # Count objects using line
-                elif len(self.reg_pts) == 2:
-                    if prev_position is not None and track_id not in self.count_ids:
-                        distance = Point(track_line[-1]).distance(self.counting_region)
-                        if distance < self.line_dist_thresh and track_id not in self.count_ids:
-                            self.count_ids.append(track_id)
-
-                            if (box[0] - prev_position[0]) * (self.counting_region.centroid.x - prev_position[0]) > 0:
-                                # self.in_counts += 1
-                                # self.class_wise_count[self.names[cls]]["IN"] += 1
-                                self.out_counts += 1
-                                self.class_wise_count[self.names[cls]]["OUT"] += 1
-                            else:
-                                # self.out_counts += 1
-                                # self.class_wise_count[self.names[cls]]["OUT"] += 1
-                                self.in_counts += 1
-                                self.class_wise_count[self.names[cls]]["IN"] += 1
+                        else:
+                            # self.out_counts += 1
+                            # self.class_wise_count[self.names[cls]]["OUT"] += 1
+                            self.in_counts += 1
+                            self.class_wise_count[self.names[cls]]["IN"] += 1
 
         labels_dict = {}
 

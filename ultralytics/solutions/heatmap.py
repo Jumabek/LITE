@@ -113,7 +113,7 @@ class Heatmap:
         Args:
             tracks (list): List of tracks obtained from the object tracking process.
         """
-        if tracks[0].track_id is not None:
+        if tracks:
             boxes = []
             clss = []
             track_ids = []
