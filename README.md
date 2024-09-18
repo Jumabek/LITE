@@ -15,7 +15,7 @@ The Lightweight Integrated Tracking-Feature Extraction (LITE) paradigm is introd
 We use `Python 3.10.12` 
 
 ```bash
-python -m venv myenv
+python3.10 -m venv myenv
 source myenv/bin/activate
 pip install -r requirements.txt
 ```
