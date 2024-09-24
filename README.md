@@ -50,9 +50,16 @@ datasets
 
 ### Checkpoints
 
-<!-- Download [checkpoints]() -->
-```bash
-bash scripts/prepare_checkpoints.sh
+Download [checkpoints](https://drive.google.com/file/d/1L4gnCbkmvGB6HbPPs1YK8O2fERBS-Xvn) and put them under LITE/checkpoints:
+```
+checkpoints
+└── FastReID
+    ├── bagtricks_S50.yml
+    ├── Base-bagtricks.yml
+    ├── deepsort
+    │   ├── ckpt.t7
+    │   └── original_ckpt.t7
+    └── DukeMTMC_BoT-S50.pth
 ```
 
 ### FastReID
