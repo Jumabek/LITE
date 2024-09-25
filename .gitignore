@@ -5,6 +5,7 @@ __pycache__/
 
 fastreid/
 yolo_tracking/
+ultralytics/
 
 checkpoints/
 
