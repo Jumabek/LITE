@@ -22,6 +22,11 @@ source myenv/bin/activate
 pip install -r requirements.txt
 ```
 
+## ultralytics
+```bash
+git clone https://github.com/humblebeeintel/ultralytics.git
+```
+
 ## Demo
 
 ```bash
