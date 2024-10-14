@@ -159,6 +159,10 @@ class Track:
             The associated detection.
 
         """
+        if detection.confidence is not None:
+            # self.scores.append(detection.confidence)
+            self.scores[0] = detection.confidence
+
         self.mean, self.covariance = self.kf.update(self.mean, self.covariance, detection.to_xyah(), detection.confidence)
 
         feature = detection.feature / np.linalg.norm(detection.feature)

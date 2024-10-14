@@ -8,9 +8,11 @@ yolo_tracking/
 ultralytics/
 
 checkpoints/
+TrackEval/
 
 datasets/
 
 results/
 videos/
 demo_output_videos/
+imgsz_confidence_analysis/

@@ -93,9 +93,12 @@ class opts:
             default='MOT17',
             help='MOT17 or MOT20 or KITTI',
         )
-        self.parser.add_argument('--source', default='demo/VIRAT_S_010204_07_000942_000989.mp4',
-                                 type=str, help='The path to the video file to be processed')
-
+        self.parser.add_argument(
+            '--source',
+            default='demo/VIRAT_S_010204_07_000942_000989.mp4',
+            type=str,
+            help='The path to the video file to be processed'
+            )
         self.parser.add_argument(
             '--split',
             type=str,
@@ -118,6 +121,7 @@ class opts:
         self.parser.add_argument(
             '--min_confidence',
             type=float,
+            default=0.25,
             # required=True,
             help='Minimum confidence threshold for detections: default .25',
         )

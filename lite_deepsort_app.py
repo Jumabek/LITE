@@ -333,8 +333,9 @@ def run(sequence_dir, output_file, min_confidence,
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
             bbox = track.to_tlwh()
+            # need to append the conf score
             results.append([
-                frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3]])
+                frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3], track.scores[0]])
 
     # Run tracker.
     if visualize:
@@ -350,8 +351,9 @@ def run(sequence_dir, output_file, min_confidence,
     if opt.dataset in ['MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack']:
         f = open(output_file, 'w')
         for row in results:
-            print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
-                row[0], row[1], row[2], row[3], row[4], row[5]), file=f)
+            # need to add conf score
+            print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1,%.2f' % (
+                row[0], row[1], row[2], row[3], row[4], row[5], row[6]), file=f)
     elif opt.dataset == 'KITTI':
         with open(output_file, 'w') as f:
             for row in results:
