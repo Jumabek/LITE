@@ -352,7 +352,7 @@ def run(sequence_dir, output_file, min_confidence,
         f = open(output_file, 'w')
         for row in results:
             # need to add conf score
-            print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1,%.2f' % (
+            print('%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,-1,-1,-1,-1' % (
                 row[0], row[1], row[2], row[3], row[4], row[5], row[6]), file=f)
     elif opt.dataset == 'KITTI':
         with open(output_file, 'w') as f:
