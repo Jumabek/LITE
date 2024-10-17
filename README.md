@@ -121,6 +121,6 @@ python lite_deepsort_solutions_demo.py \
 
 # Multi Object Tracking made easy and accessible
 
-Code is coming soon
+Code is coming soon!
 
 
