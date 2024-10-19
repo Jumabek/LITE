@@ -23,7 +23,7 @@ def process_sequence(seq, gpu_id):
         nms_max_overlap=opt.nms_max_overlap,
         min_detection_height=opt.min_detection_height,
         nn_budget=opt.nn_budget,
-        display=False,
+        display=True,
         visualize=False,
         verbose=True,
         device=device
@@ -36,7 +36,7 @@ def process_sequence(seq, gpu_id):
 if __name__ == '__main__':
     start_time = time.time()
 
-    gpu_id = 0 
+    gpu_id = 0
     sequences = opt.sequences
 
     for seq in sequences:
