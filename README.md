@@ -12,6 +12,7 @@ The Lightweight Integrated Tracking-Feature Extraction (LITE) paradigm is introd
 
 ![Efficient ReID feature extraction via the LITE paradigm](assets/Fig02-6390.png)
 
+
 ## Environment
 
 We use `Python 3.10.12` 
@@ -31,6 +32,23 @@ git clone https://github.com/humblebeeintel/ultralytics.git
 
 ```bash
 python lite_deepsort_demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
+```
+
+## ToDO
+- tensorRT version coming soon
+
+## Cite our work
+
+```
+@misc{alikhanov2024liteparadigmshiftmultiobject,
+      title={LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration}, 
+      author={Jumabek Alikhanov and Dilshod Obidov and Hakil Kim},
+      year={2024},
+      eprint={2409.04187},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2409.04187}, 
+}
 ```
 
 ## Experiments Settings
