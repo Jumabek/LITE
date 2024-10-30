@@ -12,12 +12,18 @@ The Lightweight Integrated Tracking-Feature Extraction (LITE) paradigm is introd
 
 ![Efficient ReID feature extraction via the LITE paradigm](assets/Fig02-6390.png)
 
+# Setup
+
+```bash
+git clone https://github.com/Jumabek/LITE.git
+```
 
 ## Environment
 
 We use `Python 3.10.12` 
 
 ```bash
+cd LITE
 python3.10 -m venv myenv
 source myenv/bin/activate
 pip install -r requirements.txt
@@ -113,6 +119,19 @@ Use the following command to run fps experiment with specific sequence from data
 
 ```bash
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
+```
+
+## TrackEval
+
+Download [TrackEval](https://drive.google.com/drive/folders/1vcGxVjREr5vExSQcuwPIfDkqe4--G848) and put it under LITE/TrackEval:
+```
+TrackEval
+    ├── data
+    ├── docs
+    ├── scripts
+    ├── tests
+    ├── trackeval
+    └── ...
 ```
 
 # Solutions demo with LITEDeepSORT
