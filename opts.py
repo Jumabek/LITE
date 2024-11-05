@@ -85,13 +85,13 @@ data = {
 
 
 class opts:
-    def __init__(self):
+    def __init__(self):  
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument(
             '--dataset',
             type=str,
             default='MOT17',
-            help='MOT17 or MOT20 or KITTI',
+            help='MOT17 or MOT20 or KITTI or PersonPath22 or VIRAT-S or DanceTrack',
         )
         self.parser.add_argument(
             '--source',
@@ -102,7 +102,7 @@ class opts:
         self.parser.add_argument(
             '--split',
             type=str,
-            default='test',
+            default='train',
             help='train or val/test',
         )
         self.parser.add_argument(
@@ -115,8 +115,8 @@ class opts:
             '--input_resolution',
             type=int,
             # required=True,
-            default=1080,
-            help='Resolution for input images (e.g., 1080 for 1920x1080)',
+            default=1280,
+            help='Resolution for input images (e.g., 1280 for 736x1280)',
         )
         self.parser.add_argument(
             '--min_confidence',
@@ -177,7 +177,7 @@ class opts:
         self.parser.add_argument(
             '--dir_save',
             default='output/',
-            help='e.g, results/StrongSORT_Git/tmp'
+            help='e.g, results/MOT17/'
         )
         self.parser.add_argument(
             '--EMA_alpha',
