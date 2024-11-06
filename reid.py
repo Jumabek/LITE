@@ -48,7 +48,7 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default='MOT20', help="Name of the dataset.")
     parser.add_argument("--seq_name", type=str, default='MOT20-01', help="Name of the MOT sequence.")
     parser.add_argument("--split", type=str, default='train', choices=['train', 'test'], help="Specify the split of the dataset.")
-    parser.add_argument("--tracker", type=str, default='DeepOCSORT', choices=['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'DeepOCSORT'], help="Specify the tracker model to use.")
+    parser.add_argument("--tracker", type=str, default='DeepOCSORT', choices=['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'DeepOCSORT', 'all'], help="Specify the tracker model to use.")
     return parser.parse_args()
     # Example:
     # python reid.py --tracker DeepOCSORT --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
@@ -220,12 +220,14 @@ def plot_roc_curve(tracker_name, pos_matches, neg_matches, output_path, save):
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     auc_score = roc_auc_score(y_true, y_scores)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 9))
     plt.plot(fpr, tpr, color='orange', lw=5, label=f'ROC curve (AUC = {auc_score:.2f})')
-    plt.xlabel('False Positive Rate', fontsize=18, weight='bold')
-    plt.ylabel('True Positive Rate', fontsize=18, weight='bold')
-    plt.title(f'ROC Curve for {tracker_name}', fontsize=20, fontweight='bold')
-    plt.legend(loc="lower right")
+    plt.xlabel('False Positive Rate', fontsize=22, weight='bold')
+    plt.ylabel('True Positive Rate', fontsize=22, weight='bold')
+    plt.title(f'ROC Curve for {tracker_name}', fontsize=20)
+    plt.xticks(fontsize=22)
+    plt.yticks(fontsize=22)
+    plt.legend(loc="lower right", fontsize=18)
 
     if save:
         # make plots for output path
@@ -236,13 +238,15 @@ def plot_roc_curve(tracker_name, pos_matches, neg_matches, output_path, save):
 
 def plot_reid_distribution(tracker_name, pos_matches, neg_matches, output_path, save):
     """Plots the ReID distribution histogram for the tracker."""
-    plt.figure(figsize=(10, 6))
-    plt.title(tracker_name, fontsize=20, weight='bold')
-    sns.histplot(pos_matches, color='blue', label='Positive Matches', alpha=0.5)
-    sns.histplot(neg_matches, color='red', label='Negative Matches', alpha=0.5)
-    plt.xlabel('Cosine Similarity', fontsize=18, weight='bold')
-    plt.ylabel('Count', fontsize=18, weight='bold')
-    plt.legend()
+    plt.figure(figsize=(10, 9))
+    plt.title(tracker_name, fontsize=20)
+    sns.histplot(pos_matches, color='red', label='Positive Matches', alpha=0.6)
+    sns.histplot(neg_matches, color='blue', label='Negative Matches', alpha=0.6)
+    plt.xlabel('Similarity Score', fontsize=22, weight='bold')
+    plt.ylabel('Density', fontsize=22, weight='bold')
+    plt.xticks(fontsize=22)
+    plt.yticks([])
+    plt.legend(fontsize=18)
 
     if save:
         plt.savefig(os.path.join(output_path, f'{tracker_name}_reid.png'))
@@ -255,6 +259,15 @@ if __name__ == '__main__':
     dataset = args.dataset
     seq_name = args.seq_name
     split = args.split
+    
+    if args.tracker == 'all':
+        trackers = ['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'DeepOCSORT']
+        for tracker in trackers:
+            features = predict_features(tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
+            pos_matches, neg_matches = calculate_similarity(features)
+            plot_roc_curve(tracker, pos_matches, neg_matches, args.output_path, args.save)
+            plot_reid_distribution(tracker, pos_matches, neg_matches, args.output_path, args.save)
+        sys.exit()
     
     features = predict_features(args.tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
     pos_matches, neg_matches = calculate_similarity(features)
