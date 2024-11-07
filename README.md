@@ -123,15 +123,8 @@ bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 
 ## TrackEval
 
-Download [TrackEval](https://drive.google.com/drive/folders/1vcGxVjREr5vExSQcuwPIfDkqe4--G848) and put it under LITE/TrackEval:
-```
-TrackEval
-    ├── data
-    ├── docs
-    ├── scripts
-    ├── tests
-    ├── trackeval
-    └── ...
+```bash 
+git clone https://github.com/humblebeeintel/TrackEval.git
 ```
 
 # Solutions demo with LITEDeepSORT
