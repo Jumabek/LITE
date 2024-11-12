@@ -121,6 +121,29 @@ Use the following command to run fps experiment with specific sequence from data
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
+### ReID AUC Analysis Tool
+This tool extracts appearance features and evaluates ReID AUC for multiple trackers.
+
+Quick Start
+Run the analysis using:
+
+```bash
+python reid.py --tracker <TRACKER> --dataset <DATASET> --seq_name <SEQUENCE> --save --output_path <DIR_SAVE>
+```
+Examples:
+To run for OSNet on MOT20-01 (training split) and save outputs:
+```bash
+Copy code
+python reid.py --tracker OSNet --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
+```
+
+To run for all trackers:
+
+```bash
+Copy code
+python reid.py --tracker all --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
+```
+
 ## TrackEval
 
 ```bash 
