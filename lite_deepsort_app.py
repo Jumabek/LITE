@@ -130,20 +130,25 @@ def get_apperance_features(yolo_results, image, reid_model):
 
     # Convert the image to RGB and then to PIL format only if it's needed
     if opt.tracker_name == 'StrongSORT':
-        img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
-        transform = get_transform((256, 128))
         boxes = yolo_results[0].boxes.data.cpu().numpy()
+        # Convert the image to PIL format
+        img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        transform = get_transform((256, 128))
         features_list = []
 
-        for box in boxes:
-            x1, y1, x2, y2 = box[:4]
-            crop = img_pil.crop((x1, y1, x2, y2))
-            tensor_crop = transform(crop).unsqueeze(0).cuda()
-            feature = reid_model(tensor_crop).detach().cpu().numpy().squeeze()
+        # Prepare a batch of cropped images based on bounding boxes
+        batch = [img_pil.crop((int(box[0]), int(box[1]), int(box[0]) + int(box[2]), int(box[1]) + int(box[3]))) for box in boxes]
+        batch = [transform(crop) * 255. for crop in batch]  # Apply transformations and scale to [0, 255]
+        
+
+        for box in batch:
+            box = box.unsqueeze(0).cuda()
+            feature = reid_model(box).detach().cpu().numpy().squeeze()
             features_list.append(feature)
 
+
         return features_list  # [N, (2024,)]
+    
     elif opt.tracker_name == 'DeepSORT':
         boxes = yolo_results[0].boxes.data.cpu().numpy()
         features_list = []
@@ -192,6 +197,7 @@ def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=No
 
     yolo_results = model.predict(
         image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution, appearance_feature_layer=appearance_feature_layer, conf=opt.min_confidence)
+    
     appearance_features = get_apperance_features(
         yolo_results, image, reid_model)
 
