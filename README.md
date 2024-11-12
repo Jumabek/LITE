@@ -122,7 +122,9 @@ bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
 ### ReID AUC Analysis Tool
-This tool extracts appearance features and evaluates ReID AUC for multiple trackers.
+This tool extracts appearance features and evaluates ReID AUC for multiple trackers. 
+
+Ensure that directories are converted to the correct format. [Datasets Format](#Datasets)
 
 Quick Start
 Run the analysis using:
