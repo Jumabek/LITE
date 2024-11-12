@@ -48,7 +48,7 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default='MOT20', help="Name of the dataset.")
     parser.add_argument("--seq_name", type=str, default='MOT20-01', help="Name of the MOT sequence.")
     parser.add_argument("--split", type=str, default='train', choices=['train', 'test'], help="Specify the split of the dataset.")
-    parser.add_argument("--tracker", type=str, default='DeepOCSORT', choices=['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'DeepOCSORT', 'all'], help="Specify the tracker model to use.")
+    parser.add_argument("--tracker", type=str, default='OSNet', choices=['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'OSNet', 'all'], help="Specify the tracker model to use.")
     return parser.parse_args()
     # Example:
     # python reid.py --tracker DeepOCSORT --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
@@ -67,8 +67,8 @@ def load_models(tracker_name):
     elif tracker_name == 'DeepSORT':
         model = load_deep_sort_model('cuda:0')
 
-    elif tracker_name == 'DeepOCSORT':
-        print('Loading DeepOCSORT model...')
+    elif tracker_name == 'OSNet':
+        print('Loading OSNet model...')
         fp16 = False
         rab = ReidAutoBackend(device='cuda:0', half=fp16)
         model = rab.get_backend()
@@ -102,13 +102,16 @@ def extract_appearance_features(image, boxes, tracker_name, model):
         img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         transform = get_transform((256, 128))
 
-        for box in boxes:
-            x1, y1, w, h = map(int, box[:4])
-            crop = img_pil.crop((x1, y1, x1 + w, y1 + h))
-            tensor_crop = transform(crop).unsqueeze(0).cuda()
-            feature = model(
-                tensor_crop).detach().cpu().numpy().squeeze()
-            features_list.append(feature)
+        batch = [img_pil.crop((int(box[0]), int(box[1]), int(box[0]) + int(box[2]), int(box[1]) + int(box[3]))) for box in boxes]
+        batch = [transform(crop) * 255. for crop in batch]
+
+        if batch:
+            batch = torch.stack(batch, dim=0).cuda()
+            outputs = model(batch).detach().cpu().numpy()
+
+            for output in outputs:
+                features_list.append(output)
+
 
     elif tracker_name == 'DeepSORT':
         for box in boxes:
@@ -117,12 +120,12 @@ def extract_appearance_features(image, boxes, tracker_name, model):
             y2 = y1 + h
 
             crop_rgb = cv2.cvtColor(image[y1:y2, x1:x2], cv2.COLOR_BGR2RGB)
-            feature = model(
-                [crop_rgb]).detach().cpu().numpy().squeeze()
+
+            feature = model([crop_rgb]).detach().cpu().numpy().squeeze()
 
             features_list.append(feature)
 
-    elif tracker_name == 'DeepOCSORT' or 'BotSORT':
+    elif tracker_name == 'OSNet':
         full_boxes = []
         for box in boxes:
             x1, y1, w, h = map(int, box[:4])
@@ -222,55 +225,62 @@ def plot_roc_curve(tracker_name, pos_matches, neg_matches, output_path, save):
 
     plt.figure(figsize=(10, 9))
     plt.plot(fpr, tpr, color='orange', lw=5, label=f'ROC curve (AUC = {auc_score:.2f})')
-    plt.xlabel('False Positive Rate', fontsize=22, weight='bold')
-    plt.ylabel('True Positive Rate', fontsize=22, weight='bold')
-    plt.title(f'ROC Curve for {tracker_name}', fontsize=20)
-    plt.xticks(fontsize=22)
-    plt.yticks(fontsize=22)
+    plt.xlabel('False Positive Rate', fontsize=25, weight='bold')
+    plt.ylabel('True Positive Rate', fontsize=25, weight='bold')
+    plt.title(f'ROC Curve for {tracker_name}', fontsize=25)
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
     plt.legend(loc="lower right", fontsize=18)
 
     if save:
         # make plots for output path
-        plt.savefig(os.path.join(output_path, f'{tracker_name}_roc.png'))
-        print(f"ROC curve saved to {output_path}")
+        os.makedirs(os.path.join(output_path, 'plots'), exist_ok=True)
+        plt.savefig(os.path.join(output_path, f'plots/{tracker_name}_roc_curve.png'))
+        print(f"ROC curve saved to {output_path}/plots/")
     # plt.show()
 
 
 def plot_reid_distribution(tracker_name, pos_matches, neg_matches, output_path, save):
     """Plots the ReID distribution histogram for the tracker."""
     plt.figure(figsize=(10, 9))
-    plt.title(tracker_name, fontsize=20)
+    plt.title(tracker_name, fontsize=25)
     sns.histplot(pos_matches, color='red', label='Positive Matches', alpha=0.6)
     sns.histplot(neg_matches, color='blue', label='Negative Matches', alpha=0.6)
-    plt.xlabel('Similarity Score', fontsize=22, weight='bold')
-    plt.ylabel('Density', fontsize=22, weight='bold')
-    plt.xticks(fontsize=22)
+    plt.xlabel('Similarity Score', fontsize=25, weight='bold')
+    plt.ylabel('Density', fontsize=25, weight='bold')
+    plt.xticks(fontsize=25)
     plt.yticks([])
     plt.legend(fontsize=18)
 
     if save:
-        plt.savefig(os.path.join(output_path, f'{tracker_name}_reid.png'))
-        print(f"ReID distribution saved to {output_path}")
+        # open plots folder and save the plot joining with the output path
+        plt.savefig(os.path.join(output_path, f'plots/{tracker_name}_reid.png'))
+        print(f"ReID distribution saved to {output_path}/plots/")
     # plt.show()
 
+
+
+def run_tracker_analysis(tracker, dataset, seq_name, split, output_path, save):
+    features = predict_features(tracker, dataset, seq_name, split, use_cache=True, output_path=output_path)
+    pos_matches, neg_matches = calculate_similarity(features)
+    plot_roc_curve(tracker, pos_matches, neg_matches, output_path, save)
+    plot_reid_distribution(tracker, pos_matches, neg_matches, output_path, save)
 
 if __name__ == '__main__':
     args = parse_args()
     dataset = args.dataset
     seq_name = args.seq_name
     split = args.split
-    
-    if args.tracker == 'all':
-        trackers = ['LITEDeepSORT', 'StrongSORT', 'DeepSORT', 'DeepOCSORT']
-        for tracker in trackers:
-            features = predict_features(tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
-            pos_matches, neg_matches = calculate_similarity(features)
-            plot_roc_curve(tracker, pos_matches, neg_matches, args.output_path, args.save)
-            plot_reid_distribution(tracker, pos_matches, neg_matches, args.output_path, args.save)
-        sys.exit()
-    
-    features = predict_features(args.tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
-    pos_matches, neg_matches = calculate_similarity(features)
 
-    plot_roc_curve(args.tracker, pos_matches, neg_matches, args.output_path, args.save)
-    plot_reid_distribution(args.tracker, pos_matches, neg_matches, args.output_path, args.save)
+    # Determine the list of trackers to run
+    if args.tracker == 'all':
+        trackers = ['OSNet', 'LITEDeepSORT', 'StrongSORT', 'DeepSORT']
+    else:
+        trackers = [args.tracker]
+
+    # Run analysis for each tracker
+    for tracker in trackers:
+        run_tracker_analysis(tracker, dataset, seq_name, split, args.output_path, args.save)
+
+    sys.exit()
+
