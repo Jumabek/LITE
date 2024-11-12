@@ -121,17 +121,31 @@ Use the following command to run fps experiment with specific sequence from data
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
+### ReID AUC Analysis Tool
+This tool extracts appearance features and evaluates ReID AUC for multiple trackers.
+
+Quick Start
+Run the analysis using:
+
+```bash
+python reid.py --tracker <TRACKER> --dataset <DATASET> --seq_name <SEQUENCE> --save --output_path <DIR_SAVE>
+```
+Examples:
+To run for OSNet on MOT20-01 (training split) and save outputs:
+```bash
+python reid.py --tracker OSNet --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
+```
+
+To run for all trackers:
+
+```bash
+python reid.py --tracker all --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
+```
+
 ## TrackEval
 
-Download [TrackEval](https://drive.google.com/drive/folders/1vcGxVjREr5vExSQcuwPIfDkqe4--G848) and put it under LITE/TrackEval:
-```
-TrackEval
-    ├── data
-    ├── docs
-    ├── scripts
-    ├── tests
-    ├── trackeval
-    └── ...
+```bash 
+git clone https://github.com/humblebeeintel/TrackEval.git
 ```
 
 # Solutions demo with LITEDeepSORT
