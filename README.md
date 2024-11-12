@@ -133,14 +133,12 @@ python reid.py --tracker <TRACKER> --dataset <DATASET> --seq_name <SEQUENCE> --s
 Examples:
 To run for OSNet on MOT20-01 (training split) and save outputs:
 ```bash
-Copy code
 python reid.py --tracker OSNet --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
 ```
 
 To run for all trackers:
 
 ```bash
-Copy code
 python reid.py --tracker all --dataset MOT20 --seq_name MOT20-01 --split train --save --output_path reid/data
 ```
 
