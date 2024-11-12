@@ -260,23 +260,27 @@ def plot_reid_distribution(tracker_name, pos_matches, neg_matches, output_path, 
 
 
 
+def run_tracker_analysis(tracker, dataset, seq_name, split, output_path, save):
+    features = predict_features(tracker, dataset, seq_name, split, use_cache=True, output_path=output_path)
+    pos_matches, neg_matches = calculate_similarity(features)
+    plot_roc_curve(tracker, pos_matches, neg_matches, output_path, save)
+    plot_reid_distribution(tracker, pos_matches, neg_matches, output_path, save)
+
 if __name__ == '__main__':
     args = parse_args()
     dataset = args.dataset
     seq_name = args.seq_name
     split = args.split
-    
+
+    # Determine the list of trackers to run
     if args.tracker == 'all':
         trackers = ['OSNet', 'LITEDeepSORT', 'StrongSORT', 'DeepSORT']
-        for tracker in trackers:
-            features = predict_features(tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
-            pos_matches, neg_matches = calculate_similarity(features)
-            plot_roc_curve(tracker, pos_matches, neg_matches, args.output_path, args.save)
-            plot_reid_distribution(tracker, pos_matches, neg_matches, args.output_path, args.save)
-        sys.exit()
-    
-    features = predict_features(args.tracker, dataset, seq_name, split, use_cache=True, output_path=args.output_path)
-    pos_matches, neg_matches = calculate_similarity(features)
+    else:
+        trackers = [args.tracker]
 
-    plot_roc_curve(args.tracker, pos_matches, neg_matches, args.output_path, args.save)
-    plot_reid_distribution(args.tracker, pos_matches, neg_matches, args.output_path, args.save)
+    # Run analysis for each tracker
+    for tracker in trackers:
+        run_tracker_analysis(tracker, dataset, seq_name, split, args.output_path, args.save)
+
+    sys.exit()
+
