@@ -125,7 +125,7 @@ def get_apperance_features(yolo_results, image, reid_model):
     if opt.tracker_name == 'SORT':
         return [None] * len(yolo_results[0].boxes.data)
 
-    if opt.tracker_name == 'LITEDeepSORT':
+    if opt.tracker_name.startswith('LITE'):
         return yolo_results[0].appearance_features.cpu().numpy()
 
     # Convert the image to RGB and then to PIL format only if it's needed
@@ -189,7 +189,7 @@ def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=No
     image = cv2.imread(img_path)
 
     # get the name of the YOLOv8 layer to extract appearance features.
-    if opt.tracker_name == 'LITEDeepSORT':
+    if opt.tracker_name.startswith('LITE'):
         assert opt.appearance_feature_layer is not None, "Please provide the appearance feature layer in order to use LITEDeepSORT"
         appearance_feature_layer = opt.appearance_feature_layer
     else:
@@ -285,7 +285,9 @@ def run(sequence_dir, output_file, min_confidence,
 
     tracker = Tracker(metric, max_age=opt.max_age)
     results = []
-    model = YOLO("yolov8m.pt")
+
+    model_name = opt.yolo_model + ".pt"
+    model = YOLO(model_name)
 
     model.to(device)
     reid_model = None
@@ -293,12 +295,12 @@ def run(sequence_dir, output_file, min_confidence,
         reid_model = load_reid_model(device)
     elif opt.tracker_name == 'DeepSORT':
         reid_model = load_deep_sort_model(device)
-    elif opt.tracker_name == 'LITEDeepSORT':
+    elif opt.tracker_name.startswith('LITE'):
         pass  # ReID features are extracted for free from detector itself in LITEDeepSORT
 
     if verbose:
+        print(f"{model_name} loaded successfully")
         print(f"Processing \n")
-    # inner function
 
     def frame_callback(vis, frame_idx):
 

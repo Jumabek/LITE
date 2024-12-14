@@ -88,6 +88,12 @@ class opts:
     def __init__(self):  
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument(
+            '--yolo_model',
+            type=str,
+            default='default',
+            help='YOLO model to use [n, s, m, l, x] and path to .weights file',
+        )
+        self.parser.add_argument(
             '--dataset',
             type=str,
             default='MOT17',
@@ -237,8 +243,9 @@ class opts:
             opt.MC = True
             opt.woC = True
             opt.max_cosine_distance = 0.4
-        elif opt.tracker_name == 'LITEDeepSORT':
+        elif opt.tracker_name.startswith('LITE'):
             opt.woC = True
+            opt.ECC = False
 
         # if opt.max_cosine_distance is none then set it to 0.3
         if opt.max_cosine_distance is None:

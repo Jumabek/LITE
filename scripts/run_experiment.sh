@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# 320 640 960 1280 1600 1920 2240 2560
-
-INPUT_RESOLUTIONS=(640 960 1280 1600 1920 2240 2560)
-MIN_CONFIDENCE=".25"
-DATASET=""
-SPLIT=""
+# Resolutions and other constants
+INPUT_RESOLUTIONS=(1280)
+CONFIDENCE_LEVELS=(0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7)
+DATASETS=("MOT17" "MOT20")
+SPLIT="train"
+MODELS=("yolov8n" "yolov8s" "yolov8m" "yolov8l" "yolov8x")
+SPLIT="train"
 
 usage() {
-    echo "Usage: $0 -d DATASET -s SPLIT"
-    echo "  -d DATASET   Dataset name (e.g., MOT17)"
+    echo "Usage: $0 -s SPLIT"
     echo "  -s SPLIT     Split (e.g., train)"
     exit 1
 }
 
 # Parse command-line options
-while getopts "d:s:" opt; do
+while getopts "s:" opt; do
     case ${opt} in
-        d)
-            DATASET=${OPTARG}
-            ;;
         s)
             SPLIT=${OPTARG}
             ;;
@@ -30,78 +27,92 @@ while getopts "d:s:" opt; do
 done
 shift $((OPTIND -1))
 
-# Check if all mandatory variables are set
-if [ -z "$DATASET" ] || [ -z "$SPLIT" ]; then
+# Check if mandatory variables are set
+if [ -z "$SPLIT" ]; then
     echo "Error: Missing required arguments."
     usage
 fi
 
-for INPUT_RESOLUTION in "${INPUT_RESOLUTIONS[@]}"
+# Loop through datasets
+for DATASET in "${DATASETS[@]}"
 do
-    CMD="python3 run.py \
-            --dataset ${DATASET} \
-            --split ${SPLIT} \
-            --input_resolution ${INPUT_RESOLUTION} \
-            --min_confidence ${MIN_CONFIDENCE}"
+    for INPUT_RESOLUTION in "${INPUT_RESOLUTIONS[@]}"
+    do
+        for CONFIDENCE in "${CONFIDENCE_LEVELS[@]}"
+        do
+            CMD="python3 run_parallel.py \
+                    --dataset ${DATASET} \
+                    --split ${SPLIT} \
+                    --input_resolution ${INPUT_RESOLUTION} \
+                    --min_confidence ${CONFIDENCE}"
 
-    CMD_YOLO_TRACKING="python3 yolo_tracking/tracking/run.py
-            --dataset ${DATASET} \
-            --split ${SPLIT} \
-            --imgsz ${INPUT_RESOLUTION} \
-            --conf ${MIN_CONFIDENCE}"
+            CMD_YOLO_TRACKING="python3 yolo_tracking/tracking/run.py \
+                    --dataset ${DATASET} \
+                    --split ${SPLIT} \
+                    --imgsz ${INPUT_RESOLUTION} \
+                    --conf ${CONFIDENCE}"
+            # print CMD_YOLO_TRACKING
+            echo ${CMD_YOLO_TRACKING}
 
-    run_tracker() {
-        TRACKER_NAME=$1
-        echo "-----------------------------------"
-        echo "Running tracker: ${TRACKER_NAME}"
+            run_tracker() {
+                TRACKER_NAME=$1
+                YOLO_MODEL=$2
+                echo "-----------------------------------"
+                echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-        DIR_SAVE="results/${DATASET}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${MIN_CONFIDENCE}"
-        mkdir -p "${DIR_SAVE}"
+                DIR_SAVE="results/LITEDeepOCSORT/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
+                mkdir -p "${DIR_SAVE}"
 
+                case ${TRACKER_NAME} in
+                    "SORT")
+                        ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ;;
+                    "LITEDeepSORT")
+                        ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ;;
+                    "DeepSORT")
+                        ${CMD} --tracker_name "DeepSORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ;;
+                    "StrongSORT")
+                        ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ;;
+                    "LITEStrongSORT")
+                        ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer14"
+                        ;;
+                    "OCSORT")
+                        ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project ${DIR_SAVE}
+                        ;;
+                    "Bytetrack")
+                        ${CMD_YOLO_TRACKING} --tracking-method "bytetrack" --project ${DIR_SAVE}
+                        ;;
+                    "DeepOCSORT")
+                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE}
+                        ;;
+                    "LITEDeepOCSORT")
+                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer14"
+                        ;;
+                    "BoTSORT")
+                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
+                        ;;
+                    "LITEBoTSORT")  
+                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
+                        ;;
+                    *)
+                        echo "Invalid tracker name"
+                        exit 1
+                        ;;
+                esac
+                echo "Experiment completed for ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}!"
+            }
 
-        case ${TRACKER_NAME} in
-            "SORT")
-                ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE}
-                ;;
-            "LITEDeepSORT")
-                ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer0" --dir_save ${DIR_SAVE}
-                ;;
-            "DeepSORT")
-                ${CMD} --tracker_name "DeepSORT" --dir_save ${DIR_SAVE}
-                ;;
-            "StrongSORT")
-                ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE}
-                ;;
-            "OCSORT")
-                ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project ${DIR_SAVE}
-                ;;
-            "Bytetrack")
-                ${CMD_YOLO_TRACKING} --tracking-method "bytetrack" --project ${DIR_SAVE}
-                ;;
-            "DeepOCSORT")
-                ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE}
-                ;;
-            "LITEDeepOCSORT")
-                ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
-                ;;
-            "BoTSORT")
-                ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
-                ;;
-            "LITEBoTSORT")  
-                ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
-                ;;
-            *)
-                echo "Invalid tracker name"
-                exit 1
-                ;;
-        esac
-        echo "Experiment completed for ${TRACKER_NAME}!"
-    }
+            # Loop through models and trackers
+            TRACKERS=("LITEStrongSORT")
 
-    # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
-    TRACKERS=("LITEDeepSORT")
-
-    for TRACKER in "${TRACKERS[@]}"; do
-        run_tracker "${TRACKER}"
+            for YOLO_MODEL in "${MODELS[@]}"; do
+                for TRACKER in "${TRACKERS[@]}"; do
+                    run_tracker "${TRACKER}" "${YOLO_MODEL}"
+                done
+            done
+        done
     done
 done
