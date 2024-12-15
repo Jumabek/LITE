@@ -5,11 +5,12 @@ from opts import opt
 import warnings
 from os.path import join
 from concurrent.futures import ThreadPoolExecutor
+from ultralytics import YOLO
 
 warnings.filterwarnings("ignore")
 
 
-def process_sequence(seq, gpu_id):
+def process_sequence(seq, gpu_id, model):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     device = f'cuda:0'
@@ -18,7 +19,11 @@ def process_sequence(seq, gpu_id):
     print(
         f'Processing video {seq} on {device} (process ID: {os.getpid()})...', flush=True)
     path_save = join(opt.dir_save, seq + '.txt')
+
+
+
     run(
+        model=model,
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
         min_confidence=opt.min_confidence,
@@ -37,13 +42,19 @@ def process_sequence(seq, gpu_id):
 
 if __name__ == '__main__':
     start_time = time.time()
+    
+    model_name = opt.yolo_model + '.pt'
+    model = YOLO(model_name)
 
+    print(f'Loaded YOLO model: {model_name}', flush=True)
+
+    # Load the model
     gpu_id = 0
     sequences = opt.sequences
 
     with ThreadPoolExecutor() as executor:
         # Submit all sequences to run in parallel
-        futures = [executor.submit(process_sequence, seq, gpu_id)
+        futures = [executor.submit(process_sequence, seq, gpu_id, model)
                    for seq in sequences]
         # Wait for all futures to complete
         for future in futures:

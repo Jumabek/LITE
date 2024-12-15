@@ -203,6 +203,7 @@ def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=No
 
     boxes = yolo_results[0].boxes.data.cpu().numpy()
     classes = yolo_results[0].boxes.cls.cpu().numpy()
+    
     for box, feature, cls in zip(boxes, appearance_features, classes):
         xmin, ymin, xmax, ymax, conf, _ = box
         x_tl = xmin
@@ -242,7 +243,7 @@ def load_deep_sort_model(device='cuda:0'):
     return model
 
 
-def run(sequence_dir, output_file, min_confidence,
+def run(model, sequence_dir, output_file, min_confidence,
         nms_max_overlap, min_detection_height,
         nn_budget, display, device, verbose=False, visualize=False):
     """Run multi-target tracker on a particular sequence.
@@ -286,9 +287,6 @@ def run(sequence_dir, output_file, min_confidence,
     tracker = Tracker(metric, max_age=opt.max_age)
     results = []
 
-    model_name = opt.yolo_model + ".pt"
-    model = YOLO(model_name)
-
     model.to(device)
     reid_model = None
     if opt.tracker_name == 'StrongSORT':
@@ -299,27 +297,12 @@ def run(sequence_dir, output_file, min_confidence,
         pass  # ReID features are extracted for free from detector itself in LITEDeepSORT
 
     if verbose:
-        print(f"{model_name} loaded successfully")
         print(f"Processing \n")
 
     def frame_callback(vis, frame_idx):
-
-        # Load image and generate detections.
-
         detections = create_detections(
             sequence_dir, frame_idx, model, min_detection_height, reid_model)
-
-        detections = [d for d in detections if d.confidence >= min_confidence]
-
-        # Run non-maxima suppression.
-        boxes = np.array([d.tlwh for d in detections])
-        scores = np.array([d.confidence for d in detections])
-        indices = preprocessing.non_max_suppression(
-            boxes, nms_max_overlap, scores)
-        detections = [detections[i] for i in indices]
-        # array([         40,      13.117,           0,      9.8826])
-        # array([         40,      13.057,           0,      9.9428])
-        # Update tracker.
+        
         if opt.ECC:
             tracker.camera_update(sequence_dir.split('/')[-1], frame_idx)
 
