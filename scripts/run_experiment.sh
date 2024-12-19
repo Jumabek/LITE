@@ -2,11 +2,11 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
-CONFIDENCE_LEVELS=(0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7)
-DATASETS=("MOT17" "MOT20")
+CONFIDENCE_LEVELS=(0.25)
+DATASETS=("MOT17")
 SPLIT="train"
-MODELS=("yolov8l" "yolov8s" "yolov8m" "yolov8l" "yolov8x")
-SPLIT="train"
+MODELS=("best")
+
 
 usage() {
     echo "Usage: $0 -s SPLIT"

@@ -39,7 +39,7 @@ git clone https://github.com/humblebeeintel/ultralytics.git
 ## Demo
 
 ```bash
-python lite_deepsort_demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
+python demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
 ```
 
 ## ToDO
@@ -123,7 +123,7 @@ Use the following command to run fps experiment with specific sequence from data
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
-# Solutions demo with LITEDeepSORT
+# Solutions demo with LITE
 
 ```bash
 bash demo/download_solutions_demo_videos.sh

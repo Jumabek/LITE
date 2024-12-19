@@ -19,7 +19,6 @@ def process_sequence(seq, gpu_id, model):
     path_save = join(opt.dir_save, seq + '.txt')
 
     run(
-        model=model,
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
         min_confidence=opt.min_confidence,

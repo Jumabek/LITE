@@ -73,6 +73,9 @@ run_tracker() {
         "StrongSORT")
             ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save "${DIR_SAVE}"
             ;;
+        "LITEStrongSORT")
+            ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer14"
+            ;;
         "OCSORT")
             ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project "${DIR_SAVE}"
             ;;
@@ -85,6 +88,7 @@ run_tracker() {
         "LITEDeepOCSORT")
             ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project "${DIR_SAVE}" --appearance-feature-layer "layer0"
             ;;
+            
         "BoTSORT")
             ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project "${DIR_SAVE}"
             ;;
