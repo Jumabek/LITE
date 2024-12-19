@@ -5,7 +5,6 @@ from .image_viewer import ImageViewer
 import os
 import cv2
 from opts import opt
-import time
 
 
 def create_unique_color_float(tag, hue_step=0.41):

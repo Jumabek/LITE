@@ -1,19 +1,13 @@
-# dont apply autopep8 to below line
-# yapf: disable
 from deep_sort.detection import Detection
-from application_util import preprocessing
 from deep_sort.tracker import Tracker
 from deep_sort import nn_matching
 from ultralytics import YOLO
 import numpy as np
-import argparse
-import sys
 import cv2
 from opts import opt
 
 
 def process_video(video_path):
-
     # Open the video file or camera
     cap = cv2.VideoCapture(video_path)
 
@@ -23,7 +17,6 @@ def process_video(video_path):
     model = YOLO("yolov8m.pt")
     print(model.info(verbose=True))
 
-    nms_max_overlap = 1.0
     metric = nn_matching.NearestNeighborDistanceMetric(
         'cosine',
         0.3,
@@ -55,6 +48,7 @@ def process_video(video_path):
         boxes = yolo_results[0].boxes.data.cpu().numpy()
 
         appearance_features = yolo_results[0].appearance_features.cpu().numpy()
+        
         detections = []
         for box, feature in zip(boxes, appearance_features):
             xmin, ymin, xmax, ymax, conf, _ = box
@@ -69,11 +63,6 @@ def process_video(video_path):
 
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
-        scores = np.array([d.confidence for d in detections])
-        indices = preprocessing.non_max_suppression(
-            boxes, nms_max_overlap, scores)
-        detections = [detections[i] for i in indices]
-
         tracker.predict()
         tracker.update(detections)
 

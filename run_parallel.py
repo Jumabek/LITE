@@ -6,9 +6,7 @@ import warnings
 from os.path import join
 from concurrent.futures import ThreadPoolExecutor
 from ultralytics import YOLO
-
 warnings.filterwarnings("ignore")
-
 
 def process_sequence(seq, gpu_id, model):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
@@ -20,21 +18,18 @@ def process_sequence(seq, gpu_id, model):
         f'Processing video {seq} on {device} (process ID: {os.getpid()})...', flush=True)
     path_save = join(opt.dir_save, seq + '.txt')
 
-
-
     run(
         model=model,
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
         min_confidence=opt.min_confidence,
-        nms_max_overlap=opt.nms_max_overlap,
-        min_detection_height=opt.min_detection_height,
         nn_budget=opt.nn_budget,
-        display=True,
+        display=False,
         visualize=False,
         verbose=True,
         device=device
     )
+
     end_time = time.time()
     print(
         f'Finished processing video {seq} on {device} in {end_time - start_time:.2f} seconds', flush=True)

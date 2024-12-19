@@ -1,5 +1,7 @@
 myenv/
 __pycache__/
+ultralytics/__pycache__/
+*.pyc
 *.pt
 .vscode/
 

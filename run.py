@@ -20,11 +20,9 @@ def process_sequence(seq, gpu_id):
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
         min_confidence=opt.min_confidence,
-        nms_max_overlap=opt.nms_max_overlap,
-        min_detection_height=opt.min_detection_height,
         nn_budget=opt.nn_budget,
         display=True,
-        visualize=False,
+        visualize=True,
         verbose=True,
         device=device
     )
@@ -38,12 +36,11 @@ if __name__ == '__main__':
 
     gpu_id = 0
     sequences = opt.sequences
+    sequences = sorted(sequences)
 
     for seq in sequences:
-
         process_sequence(seq, gpu_id)
 
     end_time = time.time()
     total_time = end_time - start_time
-    print(
-        f'Total time taken for the run: {total_time:.2f} seconds', flush=True)
+    print(f'Total time taken for the run: {total_time:.2f} seconds', flush=True)

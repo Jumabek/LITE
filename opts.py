@@ -1,10 +1,3 @@
-"""
-@Author: Du Yunhao
-@Filename: opts.py
-@Contact: dyh_bupt@163.com
-@Time: 2022/2/28 19:41
-@Discription: opts
-"""
 import json
 import argparse
 from os.path import join
@@ -90,8 +83,14 @@ class opts:
         self.parser.add_argument(
             '--yolo_model',
             type=str,
-            default='default',
+            default='yolov8m',
             help='YOLO model to use [n, s, m, l, x] and path to .weights file',
+        )
+        self.parser.add_argument(
+            '--eval_mot',
+            type=bool,
+            default=False,
+            help='Uses FasterRCNN detections given by MOT Challenge',
         )
         self.parser.add_argument(
             '--dataset',
@@ -260,7 +259,7 @@ class opts:
             opt.nn_budget = 100
 
         if opt.ECC:
-            path_ECC = f'results/StrongSORT_Git/{opt.dataset}_ECC_{ opt.split}.json'
+            path_ECC = f'results/StrongSORT_Git/{opt.dataset}_ECC_{opt.split}.json'
             opt.ecc = json.load(open(path_ECC))
         opt.sequences = data[opt.dataset][opt.split]
         opt.dir_dataset = join(

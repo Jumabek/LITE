@@ -1,36 +1,98 @@
-# vim: expandtab:ts=4:sw=4
 from __future__ import division, print_function, absolute_import
+import logging
+from fastreid.utils.checkpoint import Checkpointer
+from fastreid.config import get_cfg
+from torchvision import transforms
+import torch
+from PIL import Image
+from opts import opt
+from deep_sort.tracker import Tracker
+from deep_sort.detection import Detection
+from deep_sort import nn_matching
+from application_util import visualization
+import numpy as np
+import cv2
+import time
+import os
 from fastreid.modeling import build_model
 from ultralytics import YOLO
 
-import argparse
-import os
-import time
-
-import cv2
-import numpy as np
-
-from application_util import preprocessing
-from application_util import visualization
-from deep_sort import nn_matching
-from deep_sort.detection import Detection
-from deep_sort.tracker import Tracker
-from opts import opt
-
-
-import ntpath
-import os
-import cv2
-from PIL import Image
-import torch
-from torchvision import transforms
-from fastreid.config import get_cfg
-from fastreid.utils.checkpoint import Checkpointer
-
-
-import logging
-
 logging.getLogger().setLevel(logging.ERROR)
+
+
+def extract_lite_features(boxes, image, model):
+    """
+    Function to extract appearance features from FasterRCNN detections using LITE
+
+    Parameters
+    ----------
+    model : YOLO
+        YOLO model object.
+        image : np.ndarray
+        boxes : np.ndarray # Bboxes that is given by MOT Challenge
+    
+    Returns
+    -------
+    np.ndarray
+        A NumPy array of appearance features.
+    """
+    features_list = []
+    org_h, org_w = image.shape[:2]
+
+    results = model.predict(image, classes=[0], verbose=False, 
+    imgsz=opt.input_resolution, appearance_feature_layer=opt.appearance_feature_layer, conf=opt.min_confidence)
+
+    appearance_feature_map = results[0].appearance_feature_map
+
+    for box in boxes:
+        x1, y1, x2, y2 = map(int, box[:4])
+
+        h_map, w_map = appearance_feature_map.shape[1:]
+
+        x1, x2, y1, y2 = map(
+            int, [x1 * w_map / org_w, x2 * w_map / org_w, y1 * h_map / org_h, y2 * h_map / org_h])
+
+        cropped_feature_map = appearance_feature_map[:, y1:y2, x1:x2]
+        embedding = torch.mean(cropped_feature_map, dim=(1, 2)).unsqueeze(0)
+
+        features_list.append(embedding)
+
+    # Concatenate all embeddings into a single tensor
+    if len(features_list) == 0:
+        return np.array([])
+    features_tensor = torch.cat(features_list, dim=0)
+
+    # Convert the tensor to a NumPy array
+    features_array = features_tensor.cpu().numpy()
+
+    return features_array
+
+def get_mot_detections(seq_dir, frame_index, reid_model, image):
+    sequence_name = os.path.basename(seq_dir)
+    dataset = opt.dataset
+    det_path = f'datasets/{dataset}/train/{sequence_name}/det/det.txt'
+    
+    frcnn_boxes = []
+
+    with open(det_path, 'r') as f:
+        for line in f:
+            parts = line.split(',')
+            frame = int(parts[0])
+            x, y, w, h = map(float, parts[2:6]) 
+            x2 = x + w
+            y2 = y + h
+            conf = 1.0 # in FRCNN detections, confidence is not provided
+            boxes = [x, y, x2, y2, conf, -1]
+            
+            if frame == frame_index:
+                frcnn_boxes.append(boxes)
+    
+    appearance_features = get_apperance_features(frcnn_boxes, image, reid_model)
+    frcnn_boxes = torch.tensor(frcnn_boxes).float()
+    classes = torch.zeros(len(frcnn_boxes))
+
+    return frcnn_boxes, appearance_features, classes
+
 
 
 def gather_sequence_info(sequence_dir):
@@ -121,60 +183,58 @@ def get_transform(size=(256, 128)):
     return transform
 
 
-def get_apperance_features(yolo_results, image, reid_model):
+def get_apperance_features(boxes, image, reid_model):
     if opt.tracker_name == 'SORT':
-        return [None] * len(yolo_results[0].boxes.data)
+        return [None] * len(boxes)
 
     if opt.tracker_name.startswith('LITE'):
-        return yolo_results[0].appearance_features.cpu().numpy()
+        # it is called when only eval mot is True
+        return extract_lite_features(boxes, image, reid_model)
 
-    # Convert the image to RGB and then to PIL format only if it's needed
     if opt.tracker_name == 'StrongSORT':
-        boxes = yolo_results[0].boxes.data.cpu().numpy()
         # Convert the image to PIL format
         img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         transform = get_transform((256, 128))
         features_list = []
 
-        # Prepare a batch of cropped images based on bounding boxes
-        batch = [img_pil.crop((int(box[0]), int(box[1]), int(box[0]) + int(box[2]), int(box[1]) + int(box[3]))) for box in boxes]
-        batch = [transform(crop) * 255. for crop in batch]  # Apply transformations and scale to [0, 255]
-        
+        crops = [
+            transform(img_pil.crop((int(box[0]), int(box[1]), int(
+                box[0]) + int(box[2]), int(box[1]) + int(box[3]))))
+            * 255.0
+            for box in boxes
+        ]
 
-        for box in batch:
-            box = box.unsqueeze(0).cuda()
-            feature = reid_model(box).detach().cpu().numpy().squeeze()
-            features_list.append(feature)
+        batch_size = 16 # batch size for feature extraction
+        for i in range(0, len(crops), batch_size):
+            batch = torch.stack(crops[i:i + batch_size]).cuda()
+            features = reid_model(batch).detach().cpu().numpy()
+            features_list.extend(features)
 
+        return features_list
 
-        return features_list  # [N, (2024,)]
-    
     elif opt.tracker_name == 'DeepSORT':
-        boxes = yolo_results[0].boxes.data.cpu().numpy()
         features_list = []
 
         for box in boxes:
             x1, y1, x2, y2 = map(int, box[:4])
-
-            # Crop using OpenCV
             crop = image[y1:y2, x1:x2]
-
-            # Convert to the RGB format to be consistent with the previous format you used
             crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
 
             # Extract features
             feature = reid_model([crop_rgb]).detach().cpu().numpy().squeeze()
-            # print(feature.shape)
+
             features_list.append(feature)
-        return features_list  # [N, (1,128)]
+
+        return features_list
 
 
-def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=None):
+def create_detections(seq_dir, frame_index, model, reid_model=None):
     detection_list = []
+
     # Get the specific image frame path
     # assuming frame names are like 000001.jpg, 000002.jpg, ...
-
     # KITTI has png extension
+
     ext = '.jpg' if opt.dataset in [
         'MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack'] else '.png'
     if opt.dataset == 'DanceTrack':
@@ -188,22 +248,24 @@ def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=No
     # Load and predict
     image = cv2.imread(img_path)
 
-    # get the name of the YOLOv8 layer to extract appearance features.
     if opt.tracker_name.startswith('LITE'):
         assert opt.appearance_feature_layer is not None, "Please provide the appearance feature layer in order to use LITEDeepSORT"
-        appearance_feature_layer = opt.appearance_feature_layer
+
+    # Eval MOT challenge
+    if opt.eval_mot:
+        boxes, appearance_features, classes = get_mot_detections(seq_dir, frame_index, reid_model, image)
     else:
-        appearance_feature_layer = None
+        # Custom YOLO detections
+        yolo_results = model.predict(image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution,
+        conf=opt.min_confidence, appearance_feature_layer=opt.appearance_feature_layer)
+        
+        boxes = yolo_results[0].boxes.data.cpu().numpy()
+        classes = yolo_results[0].boxes.cls.cpu().numpy()    
+        if opt.tracker_name.startswith('LITE'):
+            appearance_features = yolo_results[0].appearance_features.cpu().numpy()
+        else:
+            appearance_features = get_apperance_features(boxes, image, reid_model)
 
-    yolo_results = model.predict(
-        image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution, appearance_feature_layer=appearance_feature_layer, conf=opt.min_confidence)
-    
-    appearance_features = get_apperance_features(
-        yolo_results, image, reid_model)
-
-    boxes = yolo_results[0].boxes.data.cpu().numpy()
-    classes = yolo_results[0].boxes.cls.cpu().numpy()
-    
     for box, feature, cls in zip(boxes, appearance_features, classes):
         xmin, ymin, xmax, ymax, conf, _ = box
         x_tl = xmin
@@ -211,16 +273,14 @@ def create_detections(seq_dir, frame_index, model, min_height=160, reid_model=No
         width = xmax - xmin
         height = ymax - ymin
         bbox = (x_tl, y_tl, width, height)
-        if height < min_height:
-            continue
+   
         detection = Detection(bbox, conf, feature, cls)
-
         detection_list.append(detection)
 
     return detection_list
 
 
-def load_reid_model(device='cuda:0'):
+def load_strong_sort_reid_model(device='cuda:0'):
     cfg_path = 'checkpoints/FastReID/bagtricks_S50.yml'
     model_weights = 'checkpoints/FastReID/DukeMTMC_BoT-S50.pth'
     print("Loading ReID model on device", device)
@@ -231,6 +291,7 @@ def load_reid_model(device='cuda:0'):
     model = build_model(cfg)  # Use build_model directly
     model.eval()
     Checkpointer(model).load(cfg.MODEL.WEIGHTS)
+
     return model
 
 
@@ -238,14 +299,13 @@ def load_deep_sort_model(device='cuda:0'):
     print("Loading DeepSORT model on device", device)
     from deep_appearance import DeepSORTApperanceExtractor
     model = DeepSORTApperanceExtractor(
-        "checkpoints/FastReID/deepsort/original_ckpt.t7", device)
+    "checkpoints/FastReID/deepsort/original_ckpt.t7", device)
 
     return model
 
 
-def run(model, sequence_dir, output_file, min_confidence,
-        nms_max_overlap, min_detection_height,
-        nn_budget, display, device, verbose=False, visualize=False):
+def run(sequence_dir, output_file, min_confidence, 
+    nn_budget, display, device, verbose=False, visualize=False):
     """Run multi-target tracker on a particular sequence.
 
     Parameters
@@ -260,11 +320,6 @@ def run(model, sequence_dir, output_file, min_confidence,
     min_confidence : float
         Detection confidence threshold. Disregard all detections that have
         a confidence lower than this value.
-    nms_max_overlap: float
-        Maximum detection overlap (non-maxima suppression threshold).
-    min_detection_height : int
-        Detection height threshold. Disregard all detections that have
-        a height lower than this value.
     max_cosine_distance : float
         Gating threshold for cosine distance metric (object appearance).
     nn_budget : Optional[int]
@@ -282,27 +337,34 @@ def run(model, sequence_dir, output_file, min_confidence,
         opt.max_cosine_distance,
         nn_budget
     )
+
     tick = time.time()
 
     tracker = Tracker(metric, max_age=opt.max_age)
     results = []
 
+    # Load the detection YOLO model
+    model_path = opt.yolo_model + '.pt'
+    model = YOLO(model_path)
     model.to(device)
+    print(f'Loaded YOLO model: {model_path}')
+
+    if opt.eval_mot:
+        print('FRCNN Detections is being used.')
+
     reid_model = None
     if opt.tracker_name == 'StrongSORT':
-        reid_model = load_reid_model(device)
+        reid_model = load_strong_sort_reid_model(device)
+
     elif opt.tracker_name == 'DeepSORT':
         reid_model = load_deep_sort_model(device)
-    elif opt.tracker_name.startswith('LITE'):
-        pass  # ReID features are extracted for free from detector itself in LITEDeepSORT
 
-    if verbose:
-        print(f"Processing \n")
+    elif opt.tracker_name.startswith('LITE'):
+        reid_model = model  # ReID features are extracted for free from detector itself in LITE:Trackers
 
     def frame_callback(vis, frame_idx):
-        detections = create_detections(
-            sequence_dir, frame_idx, model, min_detection_height, reid_model)
-        
+        detections = create_detections(sequence_dir, frame_idx, model, reid_model)
+
         if opt.ECC:
             tracker.camera_update(sequence_dir.split('/')[-1], frame_idx)
 
@@ -311,20 +373,18 @@ def run(model, sequence_dir, output_file, min_confidence,
 
         # Update visualization.
         if visualize:
-            image = cv2.imread(
-                seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
+            image = cv2.imread(seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
             vis.set_image(image.copy())
-            # vis.draw_detections(detections)
             vis.draw_trackers(tracker.tracks)
-            vis.put_metadata()
-            vis.save_visualization()
+            # vis.draw_detections(detections)
+            # vis.put_metadata()
+            # vis.save_visualization()
 
         # Store results for evaluation.
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
             bbox = track.to_tlwh()
-            # need to append the conf score
             results.append([
                 frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3], track.scores[0]])
 
@@ -357,13 +417,11 @@ def run(model, sequence_dir, output_file, min_confidence,
                 truncated = -1  # default, as this info might not be available
                 occluded = -1  # default, as this info might not be available
                 alpha = -10  # default, as this info might not be available
-                # default, as this info might not be available
                 dimensions = (-1, -1, -1)
-                # default, as this info might not be available
                 location = (-1000, -1000, -1000)
-                rotation_y = -10  # default, as this info might not be available
-                score = row[5]  # if you have confidence score
 
+                # rotation_y = -10  # default, as this info might not be available
+                # score = row[5]  # if you have confidence score
                 # Write formatted data with maximum 2 decimal places for floating-point values
                 f.write(f"{row[0]} {row[1]} {object_type} {truncated} {occluded} {alpha:.2f} "
                         f"{row[2]:.2f} {row[3]:.2f} {(row[2]+row[4]):.2f} {(row[3]+row[5]):.2f} "
@@ -382,58 +440,5 @@ def run(model, sequence_dir, output_file, min_confidence,
     num_frames = (seq_info["max_frame_idx"] - seq_info["min_frame_idx"])
     avg_time_per_frame = (time_spent_for_the_sequence) / num_frames
 
-    print(
-        f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
-    print(
-        f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
-
-
-def bool_string(input_string):
-    if input_string not in {"True", "False"}:
-        raise ValueError("Please Enter a valid Ture/False choice")
-    else:
-        return (input_string == "True")
-
-
-def parse_args():
-    """ Parse command line arguments.
-    """
-    parser = argparse.ArgumentParser(description="Deep SORT")
-    parser.add_argument(
-        "--sequence_dir", help="Path to MOTChallenge sequence directory",
-        default='datasets/MOT17', required=True)
-    parser.add_argument(
-        "--detection_file", help="Path to custom detections.", default=None)
-    parser.add_argument(
-        "--output_file", help="Path to the tracking output file. This file will"
-        " contain the tracking results on completion.",
-        default="/tmp/hypotheses.txt")
-    parser.add_argument(
-        "--min_confidence", help="Detection confidence threshold. Disregard "
-        "all detections that have a confidence lower than this value.",
-        default=0.8, type=float)
-    parser.add_argument(
-        "--min_detection_height", help="Threshold on the detection bounding "
-        "box height. Detections with height smaller than this value are "
-        "disregarded", default=0, type=int)
-    parser.add_argument(
-        "--nms_max_overlap",  help="Non-maxima suppression threshold: Maximum "
-        "detection overlap.", default=1.0, type=float)
-    parser.add_argument(
-        "--max_cosine_distance", help="Gating threshold for cosine distance "
-        "metric (object appearance).", type=float, default=0.2)
-    parser.add_argument(
-        "--nn_budget", help="Maximum size of the appearance descriptors "
-        "gallery. If None, no budget is enforced.", type=int, default=None)
-    parser.add_argument(
-        "--display", help="Show intermediate tracking results",
-        default=True, type=bool_string)
-    return parser.parse_args()
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    run(
-        args.sequence_dir, args.detection_file, args.output_file,
-        args.min_confidence, args.nms_max_overlap, args.min_detection_height,
-        args.max_cosine_distance, args.nn_budget, args.display)
+    print(f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
+    print(f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
