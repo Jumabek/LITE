@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default='MOT20', help="Name of the dataset.")
     parser.add_argument("--seq_name", type=str, default='MOT20-01', help="Name of the MOT sequence.")
     parser.add_argument("--split", type=str, default='train', choices=['train', 'test'], help="Specify the split of the dataset.")
-    parser.add_argument("--appearance_feature_layer", type=str, help="Specify the appearance feature layer for LITE.")
+    parser.add_argument("--appearance_feature_layer", type=str, default='layer0', help="Specify the appearance feature layer for LITE.")
     parser.add_argument("--tracker", type=str, default='LITE', choices=['LITE', 'StrongSORT', 'DeepSORT', 'OSNet', 'all'], help="Specify the tracker model to use.")
     return parser.parse_args()
 

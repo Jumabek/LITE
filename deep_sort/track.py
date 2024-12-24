@@ -63,10 +63,9 @@ class Track:
         A cache of features. On each measurement update, the associated feature
         vector is added to this list.
 
-    """
-
+    """    
     def __init__(self, detection, track_id, n_init, max_age,
-                 feature=None, score=None):
+                 feature=None, score=None, min_confidence=None):
         self.track_id = track_id
         self.hits = 1
         self.age = 1
@@ -74,6 +73,9 @@ class Track:
 
         self.state = TrackState.Tentative
         self.features = []
+
+        self.min_confidence = min_confidence
+
         if feature is not None:
             feature /= np.linalg.norm(feature)
             self.features.append(feature)
@@ -126,6 +128,8 @@ class Track:
         self.mean, self.covariance = self.kf.predict(self.mean, self.covariance)
         self.age += 1
         self.time_since_update += 1
+    
+    
 
     @staticmethod
     def get_matrix(dict_frame_matrix, frame):
@@ -150,29 +154,29 @@ class Track:
             self.mean[:4] = [cx, cy, w / h, h]
 
     def update(self, detection):
-        """Perform Kalman filter measurement update step and update the feature
+        """Perform Kalman filter and update the feature
         cache.
-
         Parameters
         ----------
         detection : Detection
             The associated detection.
-
         """
+
         if detection.confidence is not None:
             # self.scores.append(detection.confidence)
             self.scores[0] = detection.confidence
-
+    
         self.mean, self.covariance = self.kf.update(self.mean, self.covariance, detection.to_xyah(), detection.confidence)
 
         feature = detection.feature / np.linalg.norm(detection.feature)
+
         if opt.EMA:
             smooth_feat = opt.EMA_alpha * self.features[-1] + (1 - opt.EMA_alpha) * feature
             smooth_feat /= np.linalg.norm(smooth_feat)
             self.features = [smooth_feat]
         else:
             self.features.append(feature)
-
+        
         self.hits += 1
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:

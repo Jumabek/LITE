@@ -67,26 +67,32 @@ class Tracker:
             A list of detections at the current time step.
 
         """
-        # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
             self._match(detections)
 
         # Update track set.
         for track_idx, detection_idx in matches:
+            #if self.tracks[track_idx].min_confidence > detections[detection_idx].confidence:
+            #    self.tracks[track_idx].mark_missed()
+            #    continue
             self.tracks[track_idx].update(detections[detection_idx])
         for track_idx in unmatched_tracks:
             self.tracks[track_idx].mark_missed()
+
         for detection_idx in unmatched_detections:
             self._initiate_track(detections[detection_idx])
+        
         self.tracks = [t for t in self.tracks if not t.is_deleted()]
-
         # Update distance metric.
-        # active_targets = [t.track_id for t in self.tracks if t.is_confirmed()]
-        active_targets = [t.track_id for t in self.tracks]
+        active_targets = [t.track_id for t in self.tracks if t.is_confirmed()]
+        # active_targets = [t.track_id for t in self.tracks]
         features, targets = [], []
+
+        
         for track in self.tracks:
             # if not track.is_confirmed():
-            #     continue
+            #      continue
+
             features += track.features
             targets += [track.track_id for _ in track.features]
             if not opt.EMA:
@@ -108,7 +114,6 @@ class Tracker:
             return cost_matrix
 
         if opt.appearance_only_matching:
-
             confirmed_tracks = [
                 i for i, t in enumerate(self.tracks)]
 
@@ -156,9 +161,9 @@ class Tracker:
             set(unmatched_tracks_a + unmatched_tracks_b))
 
         return matches, unmatched_tracks, unmatched_detections
-
+    
     def _initiate_track(self, detection):
         self.tracks.append(Track(
             detection.to_xyah(), self._next_id, self.n_init, self.max_age,
-            detection.feature, detection.confidence))
+            detection.feature, detection.confidence, min_confidence=None))
         self._next_id += 1

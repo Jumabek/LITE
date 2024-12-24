@@ -200,7 +200,9 @@ class KalmanFilter(object):
         Parameters
         ----------
         mean : ndarray
-            Mean vector over the state distribution (8 dimensional).
+            Mean vector over the state distribution (un Kalman filter correction step.
+
+        Parameters8 dimensional).
         covariance : ndarray
             Covariance of the state distribution (8x8 dimensional).
         measurements : ndarray

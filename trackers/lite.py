@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 class LITE:
-    def __init__(self, model, appearance_feature_layer, imgsz=1280, conf=0.25, device='cuda:0'):
+    def __init__(self, model, appearance_feature_layer='layer0', imgsz=1280, conf=0.25, device='cuda:0'):
         self.model = model # reid model and detection model of th LITE tracker is same
         self.appearance_feature_layer = appearance_feature_layer
         self.device = device
@@ -19,9 +19,7 @@ class LITE:
         appearance_feature_map = results[0].appearance_feature_map
 
         for box in boxes:
-            x1, y1, w, h = map(int, box[:4])
-            x2 = x1 + w
-            y2 = y1 + h
+            x1, y1, x2, y2 = map(int, box[:4])
 
             h_map, w_map = appearance_feature_map.shape[1:]
 
@@ -29,9 +27,13 @@ class LITE:
 
             cropped_feature_map = appearance_feature_map[:, y1:y2, x1:x2]
 
-            embedding = torch.mean(cropped_feature_map, dim=(1, 2)).unsqueeze(0)
+            # embedding = torch.mean(cropped_feature_map, dim=(1, 2)).unsqueeze(0)
+            feature_mean = torch.mean(
+                    cropped_feature_map, dim=(1, 2))
+            normalized_feature = feature_mean / \
+                    feature_mean.norm(p=2, dim=0, keepdim=True).unsqueeze(0)
 
-            features_list.append(embedding)
+            features_list.append(normalized_feature)
 
         if len(features_list) == 0:
             return np.array([])
