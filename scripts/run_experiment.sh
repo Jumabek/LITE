@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Resolutions and other constants
-INPUT_RESOLUTIONS=(320)
+INPUT_RESOLUTIONS=(1280)
 CONFIDENCE_LEVELS=(0.25)
 DATASETS=("MOT17")
 SPLIT="train"
-MODELS=("best")
+MODELS=("yolov8")
 
 
 usage() {
@@ -40,7 +40,7 @@ do
     do
         for CONFIDENCE in "${CONFIDENCE_LEVELS[@]}"
         do
-            CMD="python3 run_parallel.py \
+            CMD="python3 run.py \
                     --dataset ${DATASET} \
                     --split ${SPLIT} \
                     --input_resolution ${INPUT_RESOLUTION} \
@@ -60,7 +60,7 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-                DIR_SAVE="results/LITEDeepOCSORT/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
+                DIR_SAVE="results/experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
@@ -68,7 +68,7 @@ do
                         ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
                         ;;
                     "LITEDeepSORT")
-                        ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} 
+                        ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer0" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} 
                         ;;
                     "DeepSORT")
                         ${CMD} --tracker_name "DeepSORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
@@ -77,7 +77,7 @@ do
                         ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
                         ;;
                     "LITEStrongSORT")
-                        ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer14"
+                        ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer0"
                         ;;
                     "OCSORT")
                         ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project ${DIR_SAVE}
@@ -89,7 +89,7 @@ do
                         ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE}
                         ;;
                     "LITEDeepOCSORT")
-                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer14"
+                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
                         ;;
                     "BoTSORT")
                         ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
@@ -106,7 +106,8 @@ do
             }
 
             # Loop through models and trackers
-            TRACKERS=("LITEDeepOCSORT")
+            # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
+            TRACKERS=('LITEDeepSORT' 'LITEStrongSORT' 'LITEDeepOCSORT' 'LITEBoTSORT')
 
             for YOLO_MODEL in "${MODELS[@]}"; do
                 for TRACKER in "${TRACKERS[@]}"; do
