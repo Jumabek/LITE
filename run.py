@@ -1,6 +1,6 @@
 import os
 import time
-from lite_deepsort_app import run
+from track import run
 from opts import opt
 import warnings
 from os.path import join
@@ -19,7 +19,6 @@ def process_sequence(seq, gpu_id):
     run(
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
-        min_confidence=opt.min_confidence,
         nn_budget=opt.nn_budget,
         display=True,
         visualize=True,

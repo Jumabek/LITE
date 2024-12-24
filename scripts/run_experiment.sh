@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Resolutions and other constants
-INPUT_RESOLUTIONS=(1280)
+INPUT_RESOLUTIONS=(320)
 CONFIDENCE_LEVELS=(0.25)
 DATASETS=("MOT17")
 SPLIT="train"
@@ -68,7 +68,7 @@ do
                         ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
                         ;;
                     "LITEDeepSORT")
-                        ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} 
                         ;;
                     "DeepSORT")
                         ${CMD} --tracker_name "DeepSORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
@@ -106,7 +106,7 @@ do
             }
 
             # Loop through models and trackers
-            TRACKERS=("LITEStrongSORT")
+            TRACKERS=("LITEDeepOCSORT")
 
             for YOLO_MODEL in "${MODELS[@]}"; do
                 for TRACKER in "${TRACKERS[@]}"; do

@@ -105,11 +105,9 @@ class Visualization(object):
         # Check if folder exists, if not create one
         if not os.path.exists(dir_save):
             os.makedirs(dir_save)
-        self.img_size_for_video_writer = image_shape  # (2*640, 2*480)
+        self.img_size_for_video_writer = image_shape 
         self.video_writer = cv2.VideoWriter(
-            # Change the file extension to .mp4
             f'{dir_save}/{seq_info["sequence_name"]}.mp4',
-            # Change the codec to 'XVID' or another MP4 compatible codec
             cv2.VideoWriter_fourcc(*'mp4v'),
             30.0,
             self.img_size_for_video_writer
@@ -134,7 +132,7 @@ class Visualization(object):
         self.viewer.thickness = 2
         for track_id, box in zip(track_ids, boxes):
             self.viewer.color = create_unique_color_uchar(track_id)
-            self.viewer.rectangle(*box.astype(np.int), label=str(track_id))
+            self.viewer.rectangle(*box.astype(np.int32), label=str(track_id))
 
     def draw_detections(self, detections):
         self.viewer.thickness = 2

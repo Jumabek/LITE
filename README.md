@@ -131,7 +131,7 @@ bash demo/download_solutions_demo_videos.sh
 ### Object Counter & Heatmap
 
 ```bash
-python lite_deepsort_solutions_demo.py \
+python solutions.py \
 --source videos/shortened_enterance.mp4 \
 --solution object_counter
            heatmap
@@ -140,7 +140,7 @@ python lite_deepsort_solutions_demo.py \
 ### Parking Management
 
 ```bash
-python lite_deepsort_solutions_demo.py \
+python solutions.py \
 --source videos/parking.mp4 \
 --solution parking_management
 ```
@@ -148,5 +148,3 @@ python lite_deepsort_solutions_demo.py \
 # Multi Object Tracking made easy and accessible
 
 Code is coming soon!
-
-
