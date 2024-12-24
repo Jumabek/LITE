@@ -1,19 +1,15 @@
 from __future__ import division, print_function, absolute_import
 from opts import opt
-import argparse
 from deep_sort.tracker import Tracker
 from deep_sort import nn_matching
 from application_util import visualization
-
+import cv2
 import time
 from ultralytics import YOLO
 from tqdm import tqdm
 
 from trackers import LITE, DeepSORT, StrongSORT
 from utils import gather_sequence_info, create_detections
-
-import warnings
-warnings.filterwarnings("ignore")
 
 def run(sequence_dir, output_file, 
     nn_budget, display, device, verbose=False, visualize=False):
@@ -62,7 +58,7 @@ def run(sequence_dir, output_file,
     reid_model = None
 
     if opt.eval_mot:
-        print('Evaluating on MOT challenge...')
+        tqdm.write('Evaluating on MOT challenge...')
 
     if opt.tracker_name == 'StrongSORT':
         reid_model = StrongSORT(device=device)
@@ -82,8 +78,24 @@ def run(sequence_dir, output_file,
         tracker.predict()
         tracker.update(detections)
 
-        # Update visualization.if __name__ == "__main__":
-    run(opt.sequence_dir, opt.output_file, opt.nn_budget, opt.display, opt.device, opt.verbose, opt.show)
+        # Update visualization.
+        if visualize:
+            image = cv2.imread(seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
+            vis.set_image(image.copy())
+            vis.draw_trackers(tracker.tracks)
+            # vis.draw_detections(detections)
+            # vis.put_metadata()
+            # vis.save_visualization()
+
+        # Store results for evaluation.
+        for track in tracker.tracks:
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+            bbox = track.to_tlwh()
+            results.append([
+                frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3], track.scores[0]])
+
+    # Run tracker.
     if visualize:
         visualizer = visualization.Visualization(
             seq_info, update_ms=5, dir_save=opt.dir_save, display=display)
@@ -91,18 +103,18 @@ def run(sequence_dir, output_file,
         visualizer = visualization.NoVisualization(seq_info)
 
     num_frames = seq_info["max_frame_idx"] - seq_info["min_frame_idx"] + 1
-    for frame_idx in tqdm(range(seq_info["min_frame_idx"], seq_info["max_frame_idx"] + 1), desc=f"Processing {seq_info['sequence_name']}"):
+    for frame_idx in tqdm(range(seq_info["min_frame_idx"], seq_info["max_frame_idx"] + 1), desc=f"Processing {seq_info['sequence_name']}", dynamic_ncols=True):
         frame_callback(visualizer, frame_idx)
 
     #
     if verbose:
-        print(f"storing predicted tracking results to {output_file}")
+        tqdm.write(f"storing predicted tracking results to {output_file}")
     if opt.dataset in ['MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack']:
         f = open(output_file, 'w')
         for row in results:
-            # need to add conf score
             print('%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,-1,-1,-1,-1' % (
-                row[0], row[1], row[2], row[3], row[4], row[5], row[6]), file=f)
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6]), file=f)
+            
     elif opt.dataset == 'KITTI':
         with open(output_file, 'w') as f:
             for row in results:
@@ -133,5 +145,5 @@ def run(sequence_dir, output_file,
     num_frames = (seq_info["max_frame_idx"] - seq_info["min_frame_idx"])
     avg_time_per_frame = (time_spent_for_the_sequence) / num_frames
 
-    print(f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
-    print(f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
+    tqdm.write(f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
+    tqdm.write(f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
