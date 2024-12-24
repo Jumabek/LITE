@@ -2,10 +2,10 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
-CONFIDENCE_LEVELS=(0.25)
-DATASETS=("MOT17")
+CONFIDENCE_LEVELS=(0.05)
+DATASETS=("MOT20")
 SPLIT="train"
-MODELS=("yolov8")
+MODELS=("yolov8m")
 
 
 usage() {
@@ -77,7 +77,7 @@ do
                         ${CMD} --tracker_name "StrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
                         ;;
                     "LITEStrongSORT")
-                        ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer0"
+                        ${CMD} --tracker_name "LITEStrongSORT" --BoT --ECC --NSA --EMA --MC --woC --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL} --appearance_feature_layer "layer14" --eval_mot True
                         ;;
                     "OCSORT")
                         ${CMD_YOLO_TRACKING} --tracking-method "ocsort" --project ${DIR_SAVE}
@@ -107,7 +107,7 @@ do
 
             # Loop through models and trackers
             # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
-            TRACKERS=('LITEDeepSORT' 'LITEStrongSORT' 'LITEDeepOCSORT' 'LITEBoTSORT')
+            TRACKERS=('LITEStrongSORT')
 
             for YOLO_MODEL in "${MODELS[@]}"; do
                 for TRACKER in "${TRACKERS[@]}"; do

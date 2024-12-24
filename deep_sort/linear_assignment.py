@@ -59,13 +59,13 @@ def min_cost_matching(
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
 
     cost_matrix_ = cost_matrix.copy()
-
+    
     try:
         row_indices, col_indices = linear_sum_assignment(cost_matrix_)
     except ValueError:
         print('ERROR: linear_sum_assignment failed', cost_matrix_)
-        cost_matrix = distance_metric(
-            tracks, detections, track_indices, detection_indices)
+        cost_matrix_ = distance_metric(tracks, detections, track_indices, detection_indices)
+
 
     indices = list(zip(row_indices, col_indices))
 

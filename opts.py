@@ -5,13 +5,13 @@ from os.path import join
 data = {
     'MOT17': {
         'train': [
-            'MOT17-02-FRCNN',
-            'MOT17-04-FRCNN',
-            'MOT17-05-FRCNN',
+            #'MOT17-02-FRCNN',
+            #'MOT17-04-FRCNN',
+            #'MOT17-05-FRCNN',
             'MOT17-09-FRCNN',
-            'MOT17-10-FRCNN',
-            'MOT17-11-FRCNN',
-            'MOT17-13-FRCNN'
+            #'MOT17-10-FRCNN',
+            #'MOT17-11-FRCNN',
+            #'MOT17-13-FRCNN'
         ],
         'test': [
             'MOT17-01-FRCNN',
@@ -31,8 +31,8 @@ data = {
             'MOT20-08'
         ],
         'train': [
-            'MOT20-01',
-            'MOT20-02',
+            #'MOT20-01',
+            #'MOT20-02',
             'MOT20-03',
             'MOT20-05'
         ]

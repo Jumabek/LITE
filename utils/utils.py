@@ -15,18 +15,18 @@ def get_mot_detections(seq_dir, frame_index, reid_model, image):
             parts = line.split(',')
             frame = int(parts[0])
             x, y, w, h = map(float, parts[2:6]) 
-            conf = 1.0 # in FRCNN detections, confidence is not provided
-            boxes = [x, y, w, h, conf, -1]
+            boxes = [x, y, w, h]
             
             if frame == frame_index:
                 frcnn_boxes.append(boxes)
                 
     appearance_features = get_apperance_features(image, frcnn_boxes, reid_model)
 
-    frcnn_boxes = torch.tensor(frcnn_boxes).float()
+    frcnn_boxes = torch.tensor(frcnn_boxes).int()
     classes = torch.zeros(len(frcnn_boxes))
+    confs = torch.ones(len(frcnn_boxes))
 
-    return frcnn_boxes, appearance_features, classes
+    return frcnn_boxes, appearance_features, classes, confs
 
 def gather_sequence_info(sequence_dir):
     """Gather sequence information, such as image filenames, detections,
@@ -135,7 +135,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
 
     # Eval MOT challenge
     if opt.eval_mot:
-        boxes, appearance_features, classes = get_mot_detections(seq_dir, frame_index, reid_model, image)
+        boxes, appearance_features, classes, confs = get_mot_detections(seq_dir, frame_index, reid_model, image)
     
     else:
         # Custom YOLO detections
@@ -145,6 +145,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
         boxes = yolo_results[0].boxes.xywh.cpu().numpy()
         confs = yolo_results[0].boxes.conf.cpu().numpy()
         classes = yolo_results[0].boxes.cls.cpu().numpy()
+
         if opt.tracker_name.startswith('LITE'):
             # lite do not need to extract appearance features again for boxes
             appearance_features = yolo_results[0].appearance_features.cpu().numpy()
