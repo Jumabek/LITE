@@ -1,21 +1,16 @@
-import sys
-sys.path.append('/media/hbai/data/LITE')
-# dont format this file
-
-if 1 == 1:
-    from tqdm import tqdm
-    import pandas as pd
-    import cv2
-    from os.path import join
-    import os
-    from ultralytics import YOLO
-    from ReID_modules import LITE, StrongSORT, DeepSORT  # , OSNet
+from tqdm import tqdm
+import pandas as pd
+import cv2
+from os.path import join
+import os
+from ultralytics import YOLO
+from ReID_modules import LITE, StrongSORT, DeepSORT, OSNet
 
 
 class AppearanceExtractor:
     def __init__(self, tracker, dataset, sequence, split, output, device='cuda:0', appearance_feature_layer=None):
         self.tracker = tracker
-        self.seq_dir = join('../datasets', dataset, split, sequence)
+        self.seq_dir = join('datasets', dataset, split, sequence)
         self.img_path = self.get_image_path()
         self.gt_path = self.get_gt_path()
         self.output = output
@@ -26,8 +21,8 @@ class AppearanceExtractor:
     def load_model(self):
         if self.tracker == 'LITE':
             model = YOLO('yolov8m.pt')
-            # if self.appearance_feature_layer is None:
-            #     raise ValueError("Appearance feature layer is not provided. LITE model requires it.")
+            if self.appearance_feature_layer is None:
+                 raise ValueError("Appearance feature layer is not provided. LITE model requires it.")
             # may change conf and imgsz by just passing them as arguments e.g. conf=0.25, imgsz=1280 # this is optional
             print(f"Appearance feature layer: {self.appearance_feature_layer}")
             return LITE(model=model, appearance_feature_layer=self.appearance_feature_layer)

@@ -25,7 +25,6 @@ class Evaluator:
 
                 feat_neg = current_frame_data[current_frame_data['id']
                                               != track_id].features[:feat_pos.shape[0]]
-                print(feat_pos.shape, feat_neg.shape)
                 
                 if feat_pos.size > 0:
                     pos_sim = cosine_similarity(feat, np.vstack(

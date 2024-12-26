@@ -6,7 +6,6 @@ class LITE:
     def __init__(self, model, appearance_feature_layer, imgsz=1280, conf=0.25, device='cuda:0'):
         self.model = model  # reid model and detection model of th LITE tracker is same
         self.appearance_feature_layer = appearance_feature_layer
-        print(f"Appearance feature layer: {appearance_feature_layer}")
         self.device = device
         self.imgsz = imgsz
         self.conf = conf
@@ -30,11 +29,7 @@ class LITE:
             # ensure the box is within the image
             x1, y1 = max(0, x1), max(0, y1)
             x2, y2 = min(w_map, x2), min(h_map, y2)
-            w = x2 - x1
-            h = y2 - y1
-            if w <= 0 or h <= 0:
-                pass
-
+            
             cropped_feature_map = appearance_feature_map[:, y1:y2, x1:x2]
 
             # embedding = torch.mean(cropped_feature_map, dim=(1, 2)).unsqueeze(0)

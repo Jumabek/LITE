@@ -1,8 +1,6 @@
-import sys
+import pandas as pd
 import argparse
-from evaluator import Evaluator
-from extractor import AppearanceExtractor
-from plotter import Plotter
+from prime_reid_experiment import Evaluator, AppearanceExtractor, Plotter
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -12,14 +10,20 @@ def run_reid_evaluator(tracker, dataset, seq_name, split, output_path, save, app
     extractor = AppearanceExtractor(tracker, dataset, seq_name, split,
                                     output_path, appearance_feature_layer=appearance_feature_layer)
     evaluator = Evaluator()
-
-    features = extractor.extract_features()  # per frame 200/4=50 people/boxes
+    
+    features = extractor.extract_features() 
     pos_matches, neg_matches = evaluator(features)
 
-    Plotter.plot_roc_curve(tracker, pos_matches,
-                           neg_matches, output_path, save)
-    Plotter.plot_reid_distribution(
-        tracker, pos_matches, neg_matches, output_path, save)
+
+    if tracker == 'LITE':
+        tracker_name = f'LITE_{appearance_feature_layer}' 
+
+    plotter = Plotter(tracker_name, pos_matches, neg_matches, output_path, save)
+
+    plotter.plot_roc_curve()
+    plotter.plot_reid_distribution()
+
+    return plotter.auc_score
 
 
 def parse_args():
@@ -47,14 +51,26 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    dataset, seq_name, split = args.dataset, args.seq_name, args.split
+    # args = parse_args()
+    # dataset, seq_name, split = args.dataset, args.seq_name, args.split
 
-    trackers = ['OSNet', 'LITE', 'StrongSORT',
-                'DeepSORT'] if args.tracker == 'all' else [args.tracker]
+    # trackers = ['OSNet', 'LITE', 'StrongSORT', 'DeepSORT'] if args.tracker == 'all' else [args.tracker]
 
-    for tracker in trackers:
-        run_reid_evaluator(tracker, dataset, seq_name, split,
-                           args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
+    # for tracker in trackers:
+    #     run_reid_evaluator(tracker, dataset, seq_name, split,
+    #                        args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
 
-    sys.exit()
+    # sys.exit()
+
+    layer_data = {}
+    for i in range(0, 23):
+        score = run_reid_evaluator('LITE', 'MOT20', 'MOT20-01', 'train', "", True, appearance_feature_layer=f'layer{i}')
+        
+        layer_data[f'layer{i}'] = score
+        print(f"Finished running LITE with layer{i}")
+
+    # save layer_data as csv with pandas
+    layer_data_df = pd.DataFrame(layer_data.items(), columns=['layer', 'AUC'])
+
+    layer_data_df.to_csv('layer_data.csv', index=False)
+
