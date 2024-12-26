@@ -51,26 +51,14 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    # args = parse_args()
-    # dataset, seq_name, split = args.dataset, args.seq_name, args.split
+    args = parse_args()
+    dataset, seq_name, split = args.dataset, args.seq_name, args.split
 
-    # trackers = ['OSNet', 'LITE', 'StrongSORT', 'DeepSORT'] if args.tracker == 'all' else [args.tracker]
+    trackers = ['OSNet', 'LITE', 'StrongSORT', 'DeepSORT'] if args.tracker == 'all' else [args.tracker]
 
-    # for tracker in trackers:
-    #     run_reid_evaluator(tracker, dataset, seq_name, split,
-    #                        args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
+    for tracker in trackers:
+        run_reid_evaluator(tracker, dataset, seq_name, split,
+                           args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
 
-    # sys.exit()
-
-    layer_data = {}
-    for i in range(0, 23):
-        score = run_reid_evaluator('LITE', 'MOT20', 'MOT20-01', 'train', "", True, appearance_feature_layer=f'layer{i}')
-        
-        layer_data[f'layer{i}'] = score
-        print(f"Finished running LITE with layer{i}")
-
-    # save layer_data as csv with pandas
-    layer_data_df = pd.DataFrame(layer_data.items(), columns=['layer', 'AUC'])
-
-    layer_data_df.to_csv('layer_data.csv', index=False)
+    sys.exit()
 

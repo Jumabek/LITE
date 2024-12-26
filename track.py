@@ -154,7 +154,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     else:
         # Custom YOLO detections
         yolo_results = model.predict(image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution,
-        conf=opt.min_confidence, appearance_feature_layer=opt.appearance_feature_layer)
+        conf=opt.min_confidence, appearance_feature_layer=opt.appearance_feature_layer, return_feature_map=False)
         
         boxes = yolo_results[0].boxes.data.cpu().numpy()
         if opt.tracker_name.startswith('LITE'):

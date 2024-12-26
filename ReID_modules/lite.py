@@ -11,11 +11,22 @@ class LITE:
         self.conf = conf
 
     def extract_appearance_features(self, image, boxes):
+        """
+        Executed only when evaluating MOT challenge using FRNN detections (not yolo detections) and 
+        evaluting the strength of reid features using ground truth detections
+
+        Args:
+            image (np.ndarray): image frame
+            boxes (np.ndarray): bounding boxes
+
+        Returns:
+            np.ndarray: appearance features
+        """
         features_list = []
         org_h, org_w = image.shape[:2]
 
         results = self.model.predict(image, classes=[0], verbose=False,
-        imgsz=self.imgsz, appearance_feature_layer=self.appearance_feature_layer, conf=self.conf)
+        imgsz=self.imgsz, appearance_feature_layer=self.appearance_feature_layer, conf=self.conf, return_feature_map=True)
 
         appearance_feature_map = results[0].appearance_feature_map
 
@@ -24,12 +35,12 @@ class LITE:
 
             h_map, w_map = appearance_feature_map.shape[1:]
 
-            x1, x2, y1, y2 = map(int, [x1 * w_map / org_w-1, x2 * w_map /
-                                 org_w + 1, y1 * h_map / org_h-1, y2 * h_map / org_h+1])
-            # ensure the box is within the image
+            x1, x2, y1, y2 = map(int, [x1 * w_map / org_w - 1, x2 * w_map /
+                                 org_w + 1, y1 * h_map / org_h - 1, y2 * h_map / org_h+1])
+            # ensure the box is within the image (padding)
             x1, y1 = max(0, x1), max(0, y1)
             x2, y2 = min(w_map, x2), min(h_map, y2)
-            
+
             cropped_feature_map = appearance_feature_map[:, y1:y2, x1:x2]
 
             # embedding = torch.mean(cropped_feature_map, dim=(1, 2)).unsqueeze(0)
