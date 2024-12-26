@@ -72,7 +72,7 @@ class Tracker:
 
         # Update track set.
         for track_idx, detection_idx in matches:
-            #if self.tracks[track_idx].min_confidence > detections[detection_idx].confidence:
+            # if self.tracks[track_idx].min_confidence > detections[detection_idx].confidence:
             #    self.tracks[track_idx].mark_missed()
             #    continue
             self.tracks[track_idx].update(detections[detection_idx])
@@ -81,14 +81,13 @@ class Tracker:
 
         for detection_idx in unmatched_detections:
             self._initiate_track(detections[detection_idx])
-        
+
         self.tracks = [t for t in self.tracks if not t.is_deleted()]
         # Update distance metric.
         active_targets = [t.track_id for t in self.tracks if t.is_confirmed()]
         # active_targets = [t.track_id for t in self.tracks]
         features, targets = [], []
 
-        
         for track in self.tracks:
             # if not track.is_confirmed():
             #      continue
@@ -104,25 +103,14 @@ class Tracker:
     def _match(self, detections):
         def gated_metric(tracks, dets, track_indices, detection_indices):
             features = np.array(
-                [dets[i].feature for i in detection_indices])  # (18,emd_dim)
+                [dets[i].feature for i in detection_indices])  # (num_detections,emd_dim)
             targets = np.array(
-                [tracks[i].track_id for i in track_indices])  # (10,)
+                [tracks[i].track_id for i in track_indices])  # (num_tracks,emd_dim X history_size)
             cost_matrix = self.metric.distance(features, targets)
             cost_matrix = linear_assignment.gate_cost_matrix(
                 cost_matrix, tracks, dets, track_indices,
                 detection_indices)
             return cost_matrix
-
-        if opt.appearance_only_matching:
-            confirmed_tracks = [
-                i for i, t in enumerate(self.tracks)]
-
-            # Associate confirmed tracks using appearance features.
-            matches_a, unmatched_tracks_a, unmatched_detections = \
-                linear_assignment.matching_cascade(
-                    gated_metric, self.metric.matching_threshold, self.max_age,
-                    self.tracks, detections, confirmed_tracks)
-            return matches_a, unmatched_tracks_a, unmatched_detections
 
         if opt.tracker_name == "SORT":
             # If IOU_ONLY flag is set, skip the appearance feature matching and perform only IOU matching.
@@ -161,7 +149,7 @@ class Tracker:
             set(unmatched_tracks_a + unmatched_tracks_b))
 
         return matches, unmatched_tracks, unmatched_detections
-    
+
     def _initiate_track(self, detection):
         self.tracks.append(Track(
             detection.to_xyah(), self._next_id, self.n_init, self.max_age,

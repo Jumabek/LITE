@@ -11,7 +11,7 @@ import time
 from ultralytics import YOLO
 from tqdm import tqdm
 
-from trackers import LITE, DeepSORT, StrongSORT
+from ReID_modules import LITE, DeepSORT, StrongSORT
 
 import torch
 from opts import opt
@@ -154,7 +154,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     else:
         # Custom YOLO detections
         yolo_results = model.predict(image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution,
-        conf=opt.min_confidence, appearance_feature_layer='layer0')
+        conf=opt.min_confidence, appearance_feature_layer=opt.appearance_feature_layer)
         
         boxes = yolo_results[0].boxes.data.cpu().numpy()
         if opt.tracker_name.startswith('LITE'):
@@ -210,23 +210,23 @@ def run(sequence_dir, output_file,
         opt.max_cosine_distance,
         nn_budget
     )
+    tracker = Tracker(metric, max_age=opt.max_age)
 
     tick = time.time()
 
-    tracker = Tracker(metric, max_age=opt.max_age)
     results = []
 
-    # Load the detection YOLO model
-    
+    # Load the detection YOLO model    
     model_path = opt.yolo_model + '.pt'
     model = YOLO(model_path)
     model.to(device)
     
-    reid_model = None
-
+    
     if opt.eval_mot:
         tqdm.write('Evaluating on MOT challenge...')
 
+
+    reid_model = None
     if opt.tracker_name == 'StrongSORT':
         reid_model = StrongSORT(device=device)
 
@@ -236,12 +236,10 @@ def run(sequence_dir, output_file,
     elif opt.tracker_name.startswith('LITE'):
         reid_model = LITE(model=model, appearance_feature_layer=opt.appearance_feature_layer, device=device)
 
+
     def frame_callback(vis, frame_idx):
         detections = create_detections(sequence_dir, frame_idx, model, reid_model)
-
-        if opt.ECC:
-            tracker.camera_update(sequence_dir.split('/')[-1], frame_idx)
-
+        
         tracker.predict()
         tracker.update(detections)
 

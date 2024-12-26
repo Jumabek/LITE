@@ -16,8 +16,8 @@ class StrongSORT:
         self.transform = self.get_transform()
 
     def load_model(self):
-        cfg_path = 'checkpoints/FastReID/bagtricks_S50.yml'
-        model_weights = 'checkpoints/FastReID/DukeMTMC_BoT-S50.pth'
+        cfg_path = '../checkpoints/FastReID/bagtricks_S50.yml'
+        model_weights = '../checkpoints/FastReID/DukeMTMC_BoT-S50.pth'
         print("Loading StrongSORT model on device", self.device)
         cfg = get_cfg()
         cfg.merge_from_file(cfg_path)

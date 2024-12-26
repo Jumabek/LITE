@@ -57,6 +57,7 @@ def min_cost_matching(
 
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
+
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
 
     cost_matrix_ = copy.deepcopy(cost_matrix)
@@ -135,14 +136,10 @@ def matching_cascade(
     unmatched_detections = detection_indices
     matches = []
     if opt.woC:
-        track_indices_l = [
-            k for k in track_indices
-            # if tracks[k].time_since_update == 1 + level
-        ]
         matches_l, _, unmatched_detections = \
             min_cost_matching(
                 distance_metric, max_distance, tracks, detections,
-                track_indices_l, unmatched_detections)
+                track_indices, unmatched_detections)
         matches += matches_l
     else:
         for level in range(cascade_depth):
