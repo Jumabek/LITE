@@ -1,4 +1,4 @@
-import pandas as pd
+import sys
 import argparse
 from prime_reid_experiment import Evaluator, AppearanceExtractor, Plotter
 
