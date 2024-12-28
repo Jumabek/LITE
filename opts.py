@@ -201,7 +201,7 @@ class opts:
         self.parser.add_argument(
             '--max_cosine_distance',
             type=float,
-            default=None
+            default=0.7
         )
         self.parser.add_argument(
             '--appearance_feature_layer',

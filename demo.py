@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 from opts import opt
 
-
 def process_video(video_path):
     # Open the video file or camera
     cap = cv2.VideoCapture(video_path)
@@ -46,7 +45,6 @@ def process_video(video_path):
             frame_with_text, classes=[0], verbose=False, imgsz=1280, appearance_feature_layer='layer0', conf=.25)
 
         boxes = yolo_results[0].boxes.data.cpu().numpy()
-
         appearance_features = yolo_results[0].appearance_features.cpu().numpy()
         
         detections = []

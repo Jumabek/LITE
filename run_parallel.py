@@ -1,6 +1,6 @@
 import os
 import time
-from lite_deepsort_app import run
+from track import run
 from opts import opt
 import warnings
 from os.path import join
@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from ultralytics import YOLO
 warnings.filterwarnings("ignore")
 
-def process_sequence(seq, gpu_id, model):
+def process_sequence(seq, gpu_id):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     device = f'cuda:0'
@@ -21,7 +21,6 @@ def process_sequence(seq, gpu_id, model):
     run(
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
-        min_confidence=opt.min_confidence,
         nn_budget=opt.nn_budget,
         display=False,
         visualize=False,
@@ -36,11 +35,6 @@ def process_sequence(seq, gpu_id, model):
 
 if __name__ == '__main__':
     start_time = time.time()
-    
-    model_name = opt.yolo_model + '.pt'
-    model = YOLO(model_name)
-
-    print(f'Loaded YOLO model: {model_name}', flush=True)
 
     # Load the model
     gpu_id = 0
@@ -48,7 +42,7 @@ if __name__ == '__main__':
 
     with ThreadPoolExecutor() as executor:
         # Submit all sequences to run in parallel
-        futures = [executor.submit(process_sequence, seq, gpu_id, model)
+        futures = [executor.submit(process_sequence, seq, gpu_id)
                    for seq in sequences]
         # Wait for all futures to complete
         for future in futures:

@@ -1,3 +1,4 @@
+import cv2
 from fastreid.utils.checkpoint import Checkpointer
 from fastreid.engine import DefaultTrainer
 from fastreid.config import get_cfg
@@ -9,7 +10,30 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class DeepSORT:
+    def __init__(self, device='cuda:0'):
+        self.device = device
+        self.model = self.load_model()
 
+    def load_model(self):
+        print("Loading DeepSORT model on device", self.device)
+        model = DeepSORTApperanceExtractor(
+            "checkpoints/FastReID/deepsort/original_ckpt.t7", self.device)
+        return model
+
+    def extract_appearance_features(self, image, boxes):
+        features_list = []
+        for box in boxes:
+            x1, y1, w, h = map(int, box[:4])
+            x2 = x1 + w
+            y2 = y1 + h
+            crop = image[y1:y2, x1:x2]
+            crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+            feature = self.model([crop_rgb]).detach().cpu().numpy().squeeze()
+            features_list.append(feature)
+
+        return features_list
+    
 class BasicBlock(nn.Module):
     def __init__(self, c_in, c_out, is_downsample=False):
         super(BasicBlock, self).__init__()

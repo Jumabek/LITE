@@ -2,10 +2,10 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
-CONFIDENCE_LEVELS=(0.25)
+CONFIDENCE_LEVELS=(0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7)
 DATASETS=("MOT17")
 SPLIT="train"
-MODELS=("best")
+MODELS=("ablation_17l" "ablation_17n")
 
 
 usage() {
@@ -52,7 +52,7 @@ do
                     --imgsz ${INPUT_RESOLUTION} \
                     --conf ${CONFIDENCE}"
             # print CMD_YOLO_TRACKING
-            echo ${CMD_YOLO_TRACKING}
+            echo $CMD
 
             run_tracker() {
                 TRACKER_NAME=$1
@@ -60,12 +60,12 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-                DIR_SAVE="results/LITEDeepOCSORT/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
+                DIR_SAVE="results/experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
                     "SORT")
-                        ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
+                        ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}  
                         ;;
                     "LITEDeepSORT")
                         ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
@@ -106,7 +106,9 @@ do
             }
 
             # Loop through models and trackers
-            TRACKERS=("LITEStrongSORT")
+            # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
+            TRACKERS=('LITEStrongSORT')
+
 
             for YOLO_MODEL in "${MODELS[@]}"; do
                 for TRACKER in "${TRACKERS[@]}"; do

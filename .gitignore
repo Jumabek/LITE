@@ -19,3 +19,6 @@ videos/
 demo_output_videos/
 imgsz_confidence_analysis/
 reid/
+
+prime_reid_experiment/plots/
+*.txt
