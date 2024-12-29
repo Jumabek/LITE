@@ -1,90 +1,104 @@
+# LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration
 
-# LITE
+## Overview
 
-> [**LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration**](http://www.arxiv.org/abs/2409.04187v2)
-> 
-> Jumabek Alikhanov, Dilshod Obidov, Hakil Kim
-> 
-> *[arXiv 2409.04187](http://www.arxiv.org/abs/2409.04187v2)*
-> 
-> *![Published at ICONIP2024](assets/ICONIP2024_Certificate_of_Presentation_Paper_1.pdf)*
+LITE (Lightweight Integrated Tracking-Feature Extraction) introduces a groundbreaking approach to enhance ReID-based Multi-Object Tracking (MOT) systems. By integrating appearance feature extraction directly into the detection pipeline, LITE significantly improves computational efficiency while maintaining robust performance. Utilizing CNN-based object detectors like YOLOv8 and YOLO11, LITE enables real-time tracking, making it ideal for resource-constrained environments.
 
-## Abstract
-The Lightweight Integrated Tracking-Feature Extraction (LITE) paradigm is introduced as a novel multi-object tracking (MOT) approach. It enhances ReID-based trackers by eliminating inference, pre-processing, post-processing, and ReID model training costs. LITE uses real-time appearance features without compromising speed. By integrating appearance feature extraction directly into the tracking pipeline using standard CNN-based detectors such as YOLOv8m, LITE demonstrates significant performance improvements. The simplest implementation of LITE on top of classic DeepSORT achieves a HOTA score of 43.03% at 28.3 FPS on the MOT17 benchmark, making it twice as fast as DeepSORT on MOT17 and four times faster on the more crowded MOT20 dataset, while maintaining similar accuracy. Additionally, a new evaluation framework for tracking-by-detection approaches reveals that conventional trackers like DeepSORT remain competitive with modern state-of-the-art trackers when evaluated under fair conditions.
+---
 
-![Efficient ReID feature extraction via the LITE paradigm](assets/Fig02-6390.png)
+## Key Features
 
-# Setup
+- **Efficient Integration**: Combines appearance feature extraction within the detection process.
+- **Lightweight Design**: Tailored for real-time applications on resource-limited devices.
+- **Performance Optimization**: Demonstrates notable FPS improvements across multiple trackers while retaining competitive accuracy.
+
+---
+
+## Experimental Results
+
+We evaluated LITE using **YOLOv8m** with the following settings:
+
+- **Confidence Threshold**: 0.25
+- **Input Resolution**: 1280
+
+| Tracker              | MOT17 HOTA ↑ | MOT17 FPS ↑ | MOT20 HOTA ↑ | MOT20 FPS ↑ |
+|----------------------|------------------|----------------|------------------|----------------|
+| DeepSORT            | 43.7            | 10.5           | 24.4            | 8.5            |
+| StrongSORT          | 44.5            | 4.5            | 26.1            | 2.6            |
+| Deep OC-SORT        | 43.7            | 10.3           | 24.9            | 8.9            |
+| BoTSORT             | 40.8            | 10.6           | 21.1            | 9.4            |
+| **LITE:DeepSORT**   | 43.0            | 26.7           | 25.2            | 15.9           |
+| **LITE:Deep OC-SORT** | 43.4            | 34.8           | 25.4            | 19.6           |
+| **LITE:BoTSORT**    | 40.8            | 38.2           | 21.1            | 31.8           |
+| **LITE:StrongSORT** | 42.4            | 29.7           | 25.2            | 22.9           |
+
+---
+
+## Installation
+
+Follow these steps to set up the LITE tracking system:
+
+### 1. Clone the Repository
 
 ```bash
+# Clone the LITE Tracker Repository
 git clone https://github.com/Jumabek/LITE.git
+cd LITE
 ```
 
-## Environment
-
-We use `Python 3.10.12` 
+### 2. Set Up Python Environment
 
 ```bash
-cd LITE
+# Create and activate a virtual environment
 python3.10 -m venv myenv
 source myenv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## ultralytics
+### 3. Clone Additional Dependencies
+
 ```bash
+# Clone supplementary repositories
 git clone https://github.com/Jumabek/ultralytics.git
+git clone https://github.com/humblebeeintel/yolo_tracking.git
+git clone https://github.com/humblebeeintel/TrackEval
 ```
 
-## Demo
+### 4. Set Up FastReID
 
 ```bash
-python demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
+bash scripts/setup_fastreid.sh
 ```
 
-## ToDO
-- tensorRT version coming soon
+---
 
-## Cite our work
+## Dataset Preparation
 
-```
-@misc{alikhanov2024liteparadigmshiftmultiobject,
-      title={LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration}, 
-      author={Jumabek Alikhanov and Dilshod Obidov and Hakil Kim},
-      year={2024},
-      eprint={2409.04187},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2409.04187}, 
-}
-```
+Download the prepared datasets from [this link](https://drive.google.com/drive/folders/1hlX2n5FVFGXOJrQMVSxnSmSNW7TM_BZ3) and organize them as follows:
 
-## Experiments Settings
-
-### Datasets
-
-Download our prepared [datasets](https://drive.google.com/drive/folders/1hlX2n5FVFGXOJrQMVSxnSmSNW7TM_BZ3) and put them under LITE/datasets in the following structure:
-
-```
-datasets
-   |———MOT
-   |     └———train
-   |     └———test
-   └———PersonPath22
-   |     └———test
-   └———VIRAT-S
-   |     └———train
-   └———KITTI
-         └———train
-         └———test
-
- 
+```plaintext
+LITE/datasets
+   |-- MOT
+   |   |-- train
+   |   |-- test
+   |-- PersonPath22
+   |   |-- test
+   |-- VIRAT-S
+   |   |-- train
+   |-- KITTI
+       |-- train
+       |-- test
 ```
 
-### Checkpoints
+---
 
-Download [checkpoints](https://drive.google.com/file/d/1L4gnCbkmvGB6HbPPs1YK8O2fERBS-Xvn) and put them under LITE/checkpoints:
-```
+## Checkpoints
+
+Download the required checkpoints from [this link](https://drive.google.com/file/d/1L4gnCbkmvGB6HbPPs1YK8O2fERBS-Xvn) and place them under `LITE/checkpoints`:
+
+```plaintext
 checkpoints
 └── FastReID
     ├── bagtricks_S50.yml
@@ -95,46 +109,46 @@ checkpoints
     └── DukeMTMC_BoT-S50.pth
 ```
 
-### FastReID
-
-```bash
-bash scripts/setup_fastreid.sh
-```
-
-### yolo_tracking
-
-```bash
-git clone https://github.com/humblebeeintel/yolo_tracking.git
-```
+---
 
 ## Running Experiments
 
-Use the following command to run experiments with different datasets and splits:
+### 1. Run Tracking and ReID Experiments
 
 ```bash
-bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT>
+bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT> -t <TRACKER> -m <YOLO_MODEL>
+# TRACKER options: "SORT", "LITEDeepSORT", "DeepSORT", "StrongSORT", "LITEStrongSORT", "OCSORT", "Bytetrack", "DeepOCSORT", "LITEDeepOCSORT", "BoTSORT", "LITEBoTSORT"
+
+# YOLO_MODEL options: all models of YOLO from yolov8 to yolo11
 ```
 
-## Running FPS Experiments
+### 2. Running the ReID Evaluator
+```bash
+python reid.py --dataset <DATASET> --seq_name <SEQ_NAME>  --split <SPLIT>  --tracker <ReID_MODEL> --save
+```
 
-Use the following command to run fps experiment with specific sequence from datasets:
+### 3. Run FPS Experiments
 
 ```bash
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ```
 
-# Solutions demo with LITE
+---
+
+## Demo
+
+### Basic Tracking Demo
 
 ```bash
-bash demo/download_solutions_demo_videos.sh
+python demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
 ```
+
 ### Object Counter & Heatmap
 
 ```bash
 python solutions.py \
 --source videos/shortened_enterance.mp4 \
---solution object_counter
-           heatmap
+--solution object_counter heatmap
 ```
 
 ### Parking Management
@@ -145,6 +159,20 @@ python solutions.py \
 --solution parking_management
 ```
 
-# Multi Object Tracking made easy and accessible
+---
 
-Code is coming soon!
+## Citation
+
+If you use LITE in your research, please cite our work:
+
+```bibtex
+@misc{alikhanov2024liteparadigmshiftmultiobject,
+      title={LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration}, 
+      author={Jumabek Alikhanov and Dilshod Obidov and Hakil Kim},
+      year={2024},
+      eprint={2409.04187},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2409.04187}, 
+}
+```
