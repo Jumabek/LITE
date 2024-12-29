@@ -1,4 +1,3 @@
-import sys
 import argparse
 from prime_reid_experiment import Evaluator, AppearanceExtractor, Plotter
 
@@ -14,7 +13,7 @@ def run_reid_evaluator(tracker, dataset, seq_name, split, output_path, save, app
     features = extractor.extract_features() 
     pos_matches, neg_matches = evaluator(features)
 
-
+    tracker_name = tracker
     if tracker == 'LITE':
         tracker_name = f'LITE_{appearance_feature_layer}' 
 
@@ -59,6 +58,3 @@ if __name__ == '__main__':
     for tracker in trackers:
         run_reid_evaluator(tracker, dataset, seq_name, split,
                            args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
-
-    sys.exit()
-
