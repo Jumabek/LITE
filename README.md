@@ -38,10 +38,9 @@ We evaluated LITE using **YOLOv8m** with the following settings:
 | Deep OC-SORT        | 43.7            | 10.3           | 24.9            | 8.9            |
 | BoTSORT             | 40.8            | 10.6           | 21.1            | 9.4            |
 | **LITE:DeepSORT**   | 43.0            | 26.7           | 25.2            | 15.9           |
+| **LITE:StrongSORT** | 42.4            | 29.7           | 25.2            | 22.9           |
 | **LITE:Deep OC-SORT** | 43.4            | 34.8           | 25.4            | 19.6           |
 | **LITE:BoTSORT**    | 40.8            | 38.2           | 21.1            | 31.8           |
-| **LITE:StrongSORT** | 42.4            | 29.7           | 25.2            | 22.9           |
-
 ---
 
 ## Installation
