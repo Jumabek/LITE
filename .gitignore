@@ -22,3 +22,13 @@ reid/
 
 prime_reid_experiment/plots/
 *.txt
+datasets/
+# ignore symoblic links
+*.link
+# ignore logs
+*.log
+# ignore tensorboard logs
+runs/
+# ignore checkpoints
+*.pth
+# ignore images
