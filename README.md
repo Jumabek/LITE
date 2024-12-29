@@ -1,10 +1,20 @@
 # LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration
 
+> [**LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration**](http://www.arxiv.org/abs/2409.04187v2)
+> 
+> Jumabek Alikhanov, Dilshod Obidov, Hakil Kim
+> 
+> *[arXiv 2409.04187](http://www.arxiv.org/abs/2409.04187v2)*
+> 
+> *![Published at ICONIP2024](assets/ICONIP2024_Certificate_of_Presentation_Paper_1.pdf)*
+
+
 ## Overview
 
 LITE (Lightweight Integrated Tracking-Feature Extraction) introduces a groundbreaking approach to enhance ReID-based Multi-Object Tracking (MOT) systems. By integrating appearance feature extraction directly into the detection pipeline, LITE significantly improves computational efficiency while maintaining robust performance. Utilizing CNN-based object detectors like YOLOv8 and YOLO11, LITE enables real-time tracking, making it ideal for resource-constrained environments.
 
 ---
+![Efficient ReID feature extraction via the LITE paradigm](assets/Fig02-6390.png)
 
 ## Key Features
 
@@ -127,7 +137,7 @@ bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT> -t <TRACKER> -m <YOLO_MOD
 python reid.py --dataset <DATASET> --seq_name <SEQ_NAME>  --split <SPLIT>  --tracker <ReID_MODEL> --save
 ```
 
-### 3. Run FPS Experiments
+### 2. Run FPS Experiments
 
 ```bash
 bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
@@ -136,6 +146,12 @@ bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
 ---
 
 ## Demo
+
+### Download demo videos
+
+```
+bash demo/download_solutions_demo_videos.sh
+```
 
 ### Basic Tracking Demo
 
