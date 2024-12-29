@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ## ultralytics
 ```bash
-git clone https://github.com/humblebeeintel/ultralytics.git
+git clone https://github.com/Jumabek/ultralytics.git
 ```
 
 ## Demo
