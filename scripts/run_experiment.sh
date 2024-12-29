@@ -2,10 +2,10 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
-CONFIDENCE_LEVELS=(0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7)
+CONFIDENCE_LEVELS=(0.25)
 DATASETS=("MOT17")
 SPLIT="train"
-MODELS=("ablation_17l" "ablation_17n")
+MODELS=("yolo11m")
 
 
 usage() {
@@ -89,13 +89,13 @@ do
                         ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE}
                         ;;
                     "LITEDeepOCSORT")
-                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer14"
+                        ${CMD_YOLO_TRACKING} --tracking-method "deepocsort" --project ${DIR_SAVE} --appearance-feature-layer "layer14" --yolo-model ${YOLO_MODEL}
                         ;;
                     "BoTSORT")
-                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE}
+                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --yolo-model ${YOLO_MODEL}
                         ;;
                     "LITEBoTSORT")  
-                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer0"
+                        ${CMD_YOLO_TRACKING} --tracking-method "botsort" --project ${DIR_SAVE} --appearance-feature-layer "layer14" --yolo-model ${YOLO_MODEL}
                         ;;
                     *)
                         echo "Invalid tracker name"
@@ -107,7 +107,7 @@ do
 
             # Loop through models and trackers
             # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
-            TRACKERS=('LITEStrongSORT')
+            TRACKERS=('LITEBoTSORT' 'BoTSORT' 'LITEDeepSORT')
 
 
             for YOLO_MODEL in "${MODELS[@]}"; do
