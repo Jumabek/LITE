@@ -87,6 +87,12 @@ class opts:
             help='YOLO model to use [n, s, m, l, x] and path to .weights file',
         )
         self.parser.add_argument(
+            '--visualize',
+            default=True,
+            action='store_true',
+            help='If set, visualizes the video',
+        )
+        self.parser.add_argument(
             '--eval_mot',
             type=bool,
             default=False,
@@ -223,6 +229,12 @@ class opts:
             type=str,
             default='object_counter',
             help='object_counter, heatmap, etc.'
+        )
+        self.parser.add_argument(
+            '--fps_save',
+            default=True,
+            action='store_true',
+            help='If set, saves FPS results along with the .txt results'
         )
 
     def parse(self, args=''):

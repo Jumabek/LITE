@@ -39,8 +39,8 @@ do
     for INPUT_RESOLUTION in "${INPUT_RESOLUTIONS[@]}"
     do
         for CONFIDENCE in "${CONFIDENCE_LEVELS[@]}"
-        do
-            CMD="python3 run_parallel.py \
+        do # chnage to run_parallel.py if you want to run multiple videos in parallel
+           CMD="python3 run.py \
                     --dataset ${DATASET} \
                     --split ${SPLIT} \
                     --input_resolution ${INPUT_RESOLUTION} \
@@ -60,12 +60,12 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-                DIR_SAVE="results/experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}/data"
+                DIR_SAVE="results/experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
                     "SORT")
-                        ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}  
+                        ${CMD} --tracker_name "SORT" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
                         ;;
                     "LITEDeepSORT")
                         ${CMD} --tracker_name "LITEDeepSORT" --woC --appearance_feature_layer "layer14" --dir_save ${DIR_SAVE} --yolo_model ${YOLO_MODEL}
@@ -107,7 +107,7 @@ do
 
             # Loop through models and trackers
             # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
-            TRACKERS=('LITEBoTSORT' 'BoTSORT' 'LITEDeepSORT')
+            TRACKERS=('SORT')
 
 
             for YOLO_MODEL in "${MODELS[@]}"; do

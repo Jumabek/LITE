@@ -179,7 +179,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     return detection_list
 
 def run(sequence_dir, output_file, 
-    nn_budget, display, device, verbose=False, visualize=False):
+    nn_budget, device, verbose=False, visualize=False):
     """Run multi-target tracker on a particular sequence.
 
     Parameters
@@ -264,16 +264,17 @@ def run(sequence_dir, output_file,
      # Run tracker.
     if visualize:
         visualizer = visualization.Visualization(
-            seq_info, update_ms=5, dir_save=opt.dir_save, display=display)
+            seq_info, update_ms=5, dir_save=opt.dir_save)
     else:
         visualizer = visualization.NoVisualization(seq_info)
     visualizer.run(frame_callback)
 
-    #
     if verbose:
-        tqdm.write(f"storing predicted tracking results to {output_file}")
+        print(f"Storing predicted tracking results to \033[1m{output_file}\033[0m")
+    
     if opt.dataset in ['MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack']:
         f = open(output_file, 'w')
+
         for row in results:
             print('%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,-1,-1,-1,-1' % (
             row[0], row[1], row[2], row[3], row[4], row[5], row[6]), file=f)
@@ -297,8 +298,6 @@ def run(sequence_dir, output_file,
                         f"{' '.join(map(lambda l: f'{l:.2f}', location))} "
                         f"{' '.join(map(lambda d: f'{d:.2f}', dimensions))} \n"
                         )
-    if not verbose:
-        return
 
     tock = time.time()
 

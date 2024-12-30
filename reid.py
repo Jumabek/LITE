@@ -57,4 +57,4 @@ if __name__ == '__main__':
 
     for tracker in trackers:
         run_reid_evaluator(tracker, dataset, seq_name, split,
-                           args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)
+        args.output_path, args.save, appearance_feature_layer=args.appearance_feature_layer)

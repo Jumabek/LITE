@@ -22,7 +22,6 @@ def process_sequence(seq, gpu_id):
         sequence_dir=join(opt.dir_dataset, seq),
         output_file=path_save,
         nn_budget=opt.nn_budget,
-        display=False,
         visualize=False,
         verbose=True,
         device=device

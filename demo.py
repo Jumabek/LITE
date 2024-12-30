@@ -13,7 +13,7 @@ def process_video(video_path):
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
-    model = YOLO("yolov8m.pt")
+    model = YOLO("yolo11m.pt")
     print(model.info(verbose=True))
 
     metric = nn_matching.NearestNeighborDistanceMetric(

@@ -89,7 +89,7 @@ class Visualization(object):
     This class shows tracking output in an OpenCV image viewer.
     """
 
-    def __init__(self, seq_info, update_ms, dir_save, display):
+    def __init__(self, seq_info, update_ms, dir_save):
         image_shape = seq_info["image_size"][::-1]
         aspect_ratio = float(image_shape[1]) / image_shape[0]
         image_shape = 1024, int(aspect_ratio * 1024)
@@ -100,22 +100,21 @@ class Visualization(object):
         self.last_idx = seq_info["max_frame_idx"]
 
         self.tracker_name = opt.tracker_name
-        self.display = display
 
         # Check if folder exists, if not create one
         if not os.path.exists(dir_save):
             os.makedirs(dir_save)
-        self.img_size_for_video_writer = image_shape  # (2*640, 2*480)
-        self.video_writer = cv2.VideoWriter(
-            # Change the file extension to .mp4
-            f'{dir_save}/{seq_info["sequence_name"]}.mp4',
-            # Change the codec to 'XVID' or another MP4 compatible codec
-            cv2.VideoWriter_fourcc(*'mp4v'),
-            30.0,
-            self.img_size_for_video_writer
-        )
-        if not self.video_writer.isOpened():
-            print("Error: Video writer not initialized!")
+        # self.img_size_for_video_writer = image_shape  # (2*640, 2*480)
+        # self.video_writer = cv2.VideoWriter(
+        #     # Change the file extension to .mp4
+        #     f'{dir_save}/{seq_info["sequence_name"]}.mp4',
+        #     # Change the codec to 'XVID' or another MP4 compatible codec
+        #     cv2.VideoWriter_fourcc(*'mp4v'),
+        #     30.0,
+        #     self.img_size_for_video_writer
+        # )
+        # if not self.video_writer.isOpened():
+        #     print("Error: Video writer not initialized!")
 
     def run(self, frame_callback):
         self.viewer.run(lambda: self._update_fun(frame_callback))
@@ -152,4 +151,3 @@ class Visualization(object):
                 *track.to_tlwh().astype(np.int32), label=str(track.track_id))
             # self.viewer.gaussian(track.mean[:2], track.covariance[:2, :2],
             #                      label="%d" % track.track_id)
-#
