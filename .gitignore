@@ -22,7 +22,6 @@ reid/
 
 prime_reid_experiment/plots/
 *.txt
-datasets/
 # ignore symoblic links
 *.link
 # ignore logs
