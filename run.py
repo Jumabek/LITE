@@ -6,7 +6,6 @@ import warnings
 from os.path import join
 warnings.filterwarnings("ignore")
 from pathlib import Path
-from ultralytics import YOLO
 
 
 def process_sequence(seq, gpu_id):

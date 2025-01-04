@@ -5,7 +5,6 @@ from opts import opt
 import warnings
 from os.path import join
 from concurrent.futures import ThreadPoolExecutor
-from ultralytics import YOLO
 from ultralytics.nn.tasks import attempt_load_one_weight
 
 warnings.filterwarnings("ignore")
