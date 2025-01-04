@@ -42,8 +42,8 @@ def parse_args():
                         choices=['train', 'test'], help="Specify the split of the dataset.")
     parser.add_argument("--appearance_feature_layer", type=str, default='layer14',
                         help="Specify the appearance feature layer for LITE.")
-    parser.add_argument("--tracker", type=str, default='LITE', choices=[
-                        'LITE', 'StrongSORT', 'DeepSORT', 'OSNet', 'all'], help="Specify the tracker model to use.")
+    parser.add_argument("--tracker", type=str, default='GFN', choices=[
+                        'LITE', 'StrongSORT', 'DeepSORT', 'OSNet', 'GFN', 'all'], help="Specify the tracker model to use.")
     return parser.parse_args()
 
 # running example: python reid.py --dataset MOT20 --seq_name MOT20-01 --split train --tracker LITE --output_path reid/data --save

@@ -5,6 +5,7 @@ from os.path import join
 import os
 from ultralytics import YOLO
 from reid_modules import LITE, StrongSORT, DeepSORT, OSNet
+from reid_modules.gfn import GFN
 
 
 class AppearanceExtractor:
@@ -35,6 +36,9 @@ class AppearanceExtractor:
 
         elif self.tracker == 'OSNet':
             return OSNet(device=self.device)
+        
+        elif self.tracker == 'GFN':
+            return GFN(device=self.device)
 
         else:
             raise ValueError(f"Tracker {self.tracker} not supported.")

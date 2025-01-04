@@ -11,7 +11,7 @@ import time
 from ultralytics import YOLO
 from tqdm import tqdm
 
-from reid_modules import LITE, DeepSORT, StrongSORT
+from reid_modules import LITE, DeepSORT, StrongSORT, GFN
 
 import torch
 from opts import opt
@@ -232,6 +232,9 @@ def run(sequence_dir, output_file,
 
     elif opt.tracker_name == 'DeepSORT':
         reid_model = DeepSORT(device=device)
+
+    elif opt.tracker_name == 'GFN':
+        reid_model = GFN(device=device)
 
     elif opt.tracker_name.startswith('LITE'):
         reid_model = LITE(model=model, appearance_feature_layer=opt.appearance_feature_layer, device=device)

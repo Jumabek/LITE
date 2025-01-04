@@ -4,6 +4,7 @@ ultralytics/__pycache__/
 *.pyc
 *.pt
 .vscode/
+gfn/
 
 fastreid/
 yolo_tracking/
