@@ -47,7 +47,7 @@ def parse_args():
     return parser.parse_args()
 
 # running example: python reid.py --dataset MOT20 --seq_name MOT20-01 --split train --tracker LITE --output_path reid/data --save
-
+# --appearance_feature_layer layer14
 
 if __name__ == '__main__':
     args = parse_args()

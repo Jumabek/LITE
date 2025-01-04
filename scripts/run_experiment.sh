@@ -2,10 +2,10 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
-CONFIDENCE_LEVELS=(0.25)
+CONFIDENCE_LEVELS=(0.1 0.2 0.3 0.4 0.5 0.6 0.7)
 DATASETS=("MOT17")
 SPLIT="train"
-MODELS=("yolo11m")
+MODELS=('yolov8m')
 
 
 usage() {
@@ -40,7 +40,7 @@ do
     do
         for CONFIDENCE in "${CONFIDENCE_LEVELS[@]}"
         do # chnage to run_parallel.py if you want to run multiple videos in parallel
-           CMD="python3 run.py \
+           CMD="python3 run_parallel.py \
                     --dataset ${DATASET} \
                     --split ${SPLIT} \
                     --input_resolution ${INPUT_RESOLUTION} \
@@ -60,7 +60,7 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-                DIR_SAVE="results/experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
+                DIR_SAVE="results/yolo_experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
@@ -106,8 +106,9 @@ do
             }
 
             # Loop through models and trackers
-            # TRACKERS=("SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT" "LITEStrongSORT" "OCSORT" "Bytetrack" "DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
-            TRACKERS=('SORT')
+            TRACKERS=("LITEStrongSORT")
+            #TRACKERS=("OCSORT" "Bytetrack" "SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT")
+            #TRACKERS=('Bytetrack' 'OCSORT' 'LITEDeepSORT' '')
 
 
             for YOLO_MODEL in "${MODELS[@]}"; do

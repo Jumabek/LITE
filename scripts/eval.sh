@@ -6,7 +6,7 @@ BENCHMARK="MOT17"
 BASE_CMD="python TrackEval/scripts/run_mot_challenge.py"
 
 # Parent directory where all trackers' results are stored
-PARENT_TRACKERS_FOLDER="results/experiments"
+PARENT_TRACKERS_FOLDER="results/yolo_experiments"
 
 echo "Starting the evaluation script..."
 

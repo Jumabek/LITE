@@ -136,14 +136,6 @@ bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT> -t <TRACKER> -m <YOLO_MOD
 python reid.py --dataset <DATASET> --seq_name <SEQ_NAME>  --split <SPLIT>  --tracker <ReID_MODEL> --save
 ```
 
-### 2. Run FPS Experiments
-
-```bash
-bash scripts/run_fps_experiment.sh -d <DATASET> -s <SPLIT> -q <SEQUENCE>
-```
-
----
-
 ## Demo
 
 ### Download demo videos

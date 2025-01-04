@@ -2,15 +2,11 @@ from deep_sort.detection import Detection
 from application_util import preprocessing
 from deep_sort.tracker import Tracker
 from deep_sort import nn_matching
-from ultralytics import YOLO
 import numpy as np
 import cv2
 from opts import opt
-
 import os
-
 from ultralytics import YOLO, solutions
-
 
 def process_video(video_path):
 
@@ -41,7 +37,7 @@ def process_video(video_path):
     region_points = [(850, 700), (1250, 300)]
 
     # Path to json file, that created with above point selection app
-    polygon_json_path = "videos/bounding_boxes.json"
+    polygon_json_path = "demo/videos/bounding_boxes.json"
 
     output_dir = "demo_output_videos"
     os.makedirs(output_dir, exist_ok=True)
@@ -84,6 +80,7 @@ def process_video(video_path):
         boxes = yolo_results[0].boxes.data.cpu().numpy()
 
         appearance_features = yolo_results[0].appearance_features.cpu().numpy()
+
         detections = []
         for box, feature in zip(boxes, appearance_features):
             xmin, ymin, xmax, ymax, conf, _ = box

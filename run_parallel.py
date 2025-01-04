@@ -16,7 +16,9 @@ def process_sequence(seq, gpu_id):
 
     print(
         f'Processing video {seq} on {device} (process ID: {os.getpid()})...', flush=True)
-    path_save = join(opt.dir_save, seq + '.txt')
+    save_folder = join(opt.dir_save, 'data')
+    path_save = join(save_folder, seq + '.txt')
+    os.makedirs(save_folder, exist_ok=True)
 
     run(
         sequence_dir=join(opt.dir_dataset, seq),
