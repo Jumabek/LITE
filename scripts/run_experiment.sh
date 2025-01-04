@@ -106,7 +106,7 @@ do
             }
 
             # Loop through models and trackers
-            TRACKERS=("LITEStrongSORT")
+            TRACKERS=("SORT")
             #TRACKERS=("OCSORT" "Bytetrack" "SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT")
             #TRACKERS=('Bytetrack' 'OCSORT' 'LITEDeepSORT' '')
 

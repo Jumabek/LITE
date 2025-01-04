@@ -6,6 +6,8 @@ import warnings
 from os.path import join
 from concurrent.futures import ThreadPoolExecutor
 from ultralytics import YOLO
+from ultralytics.nn.tasks import attempt_load_one_weight
+
 warnings.filterwarnings("ignore")
 
 def process_sequence(seq, gpu_id):
@@ -36,6 +38,9 @@ def process_sequence(seq, gpu_id):
 
 if __name__ == '__main__':
     start_time = time.time()
+
+    # download yolo_model for the first time not download parallel
+    attempt_load_one_weight(opt.yolo_model + '.pt')
 
     # Load the model
     gpu_id = 0
