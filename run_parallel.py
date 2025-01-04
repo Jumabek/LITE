@@ -3,6 +3,7 @@ import time
 from track import run
 from opts import opt
 import warnings
+from pathlib import Path
 from os.path import join
 from concurrent.futures import ThreadPoolExecutor
 from ultralytics.nn.tasks import attempt_load_one_weight
@@ -17,9 +18,8 @@ def process_sequence(seq, gpu_id):
 
     print(
         f'Processing video {seq} on {device} (process ID: {os.getpid()})...', flush=True)
-    save_folder = join(opt.dir_save, 'data')
-    path_save = join(save_folder, seq + '.txt')
-    os.makedirs(save_folder, exist_ok=True)
+    path_save = join(opt.dir_save, 'data', seq + '.txt')
+    os.makedirs(Path(path_save).parent, exist_ok=True)
 
     run(
         sequence_dir=join(opt.dir_dataset, seq),
@@ -39,7 +39,8 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # download yolo_model for the first time not download parallel
-    attempt_load_one_weight(opt.yolo_model + '.pt')
+    if 'yolo' in opt.yolo_model and not os.path.exists(opt.yolo_model + '.pt'):
+        attempt_load_one_weight(opt.yolo_model + '.pt')
 
     # Load the model
     gpu_id = 0

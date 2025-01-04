@@ -11,7 +11,7 @@ import time
 from ultralytics import YOLO
 from tqdm import tqdm
 
-from ReID_modules import LITE, DeepSORT, StrongSORT
+from reid_modules import LITE, DeepSORT, StrongSORT
 
 import torch
 from opts import opt
@@ -269,10 +269,18 @@ def run(sequence_dir, output_file,
         visualizer = visualization.NoVisualization(seq_info)
     visualizer.run(frame_callback)
 
+    # output_dir = os.path.dirname(output_file)
+    # os.makedirs(output_dir, exist_ok=True)
+        
+    # save_dir = os.path.join(output_dir, 'data')
+    # os.makedirs(save_dir, exist_ok=True)
+    
+    # save_file = os.path.join(save_dir, seq_info["sequence_name"] + '.txt')
+    
     if verbose:
         print(f"Storing predicted tracking results to \033[1m{output_file}\033[0m")
-    
     if opt.dataset in ['MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack']:
+       
         f = open(output_file, 'w')
 
         for row in results:
@@ -298,6 +306,8 @@ def run(sequence_dir, output_file,
                         f"{' '.join(map(lambda l: f'{l:.2f}', location))} "
                         f"{' '.join(map(lambda d: f'{d:.2f}', dimensions))} \n"
                         )
+    if not verbose:
+        return
 
     tock = time.time()
 

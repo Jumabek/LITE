@@ -4,7 +4,7 @@ import cv2
 from os.path import join
 import os
 from ultralytics import YOLO
-from ReID_modules import LITE, StrongSORT, DeepSORT, OSNet
+from reid_modules import LITE, StrongSORT, DeepSORT, OSNet
 
 
 class AppearanceExtractor:
