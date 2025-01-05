@@ -20,6 +20,9 @@ import numpy as np
 import cv2
 import os
 
+import warnings
+warnings.filterwarnings("ignore")
+
 def get_mot_detections(seq_dir, frame_index, reid_model, image):
     det_path = f'datasets/{opt.dataset}/train/{os.path.basename(seq_dir)}/det/det.txt'
     
@@ -151,6 +154,10 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     if opt.eval_mot:
         boxes, appearance_features = get_mot_detections(seq_dir, frame_index, reid_model, image)
     
+    # GFN detector
+    elif opt.tracker_name == 'GFN':
+        boxes, appearance_features = reid_model.get_detections(image)
+        
     else:
         # Custom YOLO detections
         yolo_results = model.predict(image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution,
@@ -264,22 +271,19 @@ def run(sequence_dir, output_file,
                 frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3], track.scores[0]])
 
     # Run tracker.
-     # Run tracker.
     if visualize:
-        visualizer = visualization.Visualization(
-            seq_info, update_ms=5, dir_save=opt.dir_save)
-    else:
+        try:
+            visualizer = visualization.Visualization(
+                seq_info, update_ms=5, dir_save=opt.dir_save)
+        except cv2.error as e:
+            print(f"OpenCV error: {e}. Disabling visualization.")
+            visualize = False
+
+    if not visualize:
         visualizer = visualization.NoVisualization(seq_info)
+    
     visualizer.run(frame_callback)
 
-    # output_dir = os.path.dirname(output_file)
-    # os.makedirs(output_dir, exist_ok=True)
-        
-    # save_dir = os.path.join(output_dir, 'data')
-    # os.makedirs(save_dir, exist_ok=True)
-    
-    # save_file = os.path.join(save_dir, seq_info["sequence_name"] + '.txt')
-    
     if verbose:
         print(f"Storing predicted tracking results to \033[1m{output_file}\033[0m")
     if opt.dataset in ['MOT17', 'MOT20', 'PersonPath22', 'VIRAT-S', 'DanceTrack']:
@@ -320,5 +324,7 @@ def run(sequence_dir, output_file,
     num_frames = (seq_info["max_frame_idx"] - seq_info["min_frame_idx"])
     avg_time_per_frame = (time_spent_for_the_sequence) / num_frames
 
-    tqdm.write(f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
-    tqdm.write(f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
+    print(f'Avg. processing speed: {1000*avg_time_per_frame:.0f} millisecond per frame')
+    print(f'{time_info_s} | Avg FPS: {1/avg_time_per_frame:.1f}')
+    print(f'Finished sequence \033[32m{seq_info["sequence_name"]}\033[0m')
+

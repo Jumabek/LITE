@@ -24,6 +24,21 @@ class GFN:
     def __init__(self, device='cuda'):
         self.device = device
         self.model = self.load_model()
+
+    def get_detections(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_tensor = self.to_tensor(image)
+
+        with torch.no_grad():
+            detections = self.model([image_tensor], inference_mode='both')
+            boxes = detections[0]['det_boxes'].cpu().numpy()
+            scores = detections[0]['det_scores'].cpu().numpy()
+            appearances = detections[0]['det_emb'].cpu().numpy()
+        
+        # concat boxes, scores and add 0 for class
+        detections = np.concatenate((boxes, scores[:, None], np.zeros((len(scores), 1))), axis=1)
+         
+        return detections, appearances
         
     def load_model(self):
         model_path = 'gfn/cuhk_final_convnext-base_e30.torchscript.pt'
