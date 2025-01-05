@@ -5,7 +5,7 @@ INPUT_RESOLUTIONS=(1280)
 CONFIDENCE_LEVELS=(0.1 0.2 0.3 0.4 0.5 0.6 0.7)
 DATASETS=("MOT17")
 SPLIT="train"
-MODELS=('yolov8m')
+MODELS=('yolo11m')
 
 
 usage() {
@@ -60,7 +60,7 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
-                DIR_SAVE="results/yolo_experiments/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
+                DIR_SAVE="results/yolo/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
@@ -106,8 +106,8 @@ do
             }
 
             # Loop through models and trackers
-            TRACKERS=("SORT")
-            #TRACKERS=("OCSORT" "Bytetrack" "SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT")
+            #TRACKERS=("SORT")
+            TRACKERS=("OCSORT" "Bytetrack" "SORT" "LITEDeepSORT" "DeepSORT" "StrongSORT")
             #TRACKERS=('Bytetrack' 'OCSORT' 'LITEDeepSORT' '')
 
 

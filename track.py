@@ -157,7 +157,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     # GFN detector
     elif opt.tracker_name == 'GFN':
         boxes, appearance_features = reid_model.get_detections(image)
-        
+
     else:
         # Custom YOLO detections
         yolo_results = model.predict(image, classes=opt.classes, verbose=False, imgsz=opt.input_resolution,
@@ -172,13 +172,10 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
         
 
     for box, feature in zip(boxes, appearance_features):
-        xmin, ymin, xmax, ymax, conf, _ = map(int, box)
-        x_tl = xmin
-        y_tl = ymin
-        width = xmax - xmin
-        height = ymax - ymin
+        xmin, ymin, xmax, ymax, conf, _ = box
         conf = float(conf)
-
+        x_tl, y_tl = map(int, (xmin, ymin))
+        width, height = map(int, (xmax - xmin, ymax - ymin))
         bbox = (x_tl, y_tl, width, height)
         detection = Detection(bbox, conf, feature)
         detection_list.append(detection)
@@ -186,7 +183,7 @@ def create_detections(seq_dir, frame_index, model, reid_model=None):
     return detection_list
 
 def run(sequence_dir, output_file, 
-    nn_budget, device, verbose=False, visualize=False):
+    nn_budget, device, verbose=True, visualize=False):
     """Run multi-target tracker on a particular sequence.
 
     Parameters

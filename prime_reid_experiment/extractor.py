@@ -7,7 +7,6 @@ from ultralytics import YOLO
 from reid_modules import LITE, StrongSORT, DeepSORT, OSNet
 from reid_modules.gfn import GFN
 
-
 class AppearanceExtractor:
     def __init__(self, tracker, dataset, sequence, split, output, device='cuda:0', appearance_feature_layer=None):
         self.tracker = tracker
@@ -21,7 +20,7 @@ class AppearanceExtractor:
 
     def load_model(self):
         if self.tracker == 'LITE':
-            model = YOLO('yolov8m.pt')
+            model = YOLO('yolov8m.pt') # can be changed to from yolov8 to yolo11
             if self.appearance_feature_layer is None:
                  raise ValueError("Appearance feature layer is not provided. LITE model requires it.")
             # may change conf and imgsz by just passing them as arguments e.g. conf=0.25, imgsz=1280 # this is optional
