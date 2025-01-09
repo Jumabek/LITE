@@ -151,3 +151,26 @@ class Visualization(object):
                 *track.to_tlwh().astype(np.int32), label=str(track.track_id))
             # self.viewer.gaussian(track.mean[:2], track.covariance[:2, :2],
             #                      label="%d" % track.track_id)
+
+    def draw_fps(self, fps):
+        """Draw FPS counter in the top-left corner"""
+        text = f"FPS: {fps:.1f}"
+        # Draw black background for better visibility
+        (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)
+        self.viewer.image = cv2.rectangle(
+            self.viewer.image, 
+            (10, 25), 
+            (10 + text_width, 35 + text_height), 
+            (0, 0, 0), 
+            -1
+        )
+        # Draw FPS text in white
+        cv2.putText(
+            self.viewer.image,
+            text,
+            (10, 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (255, 255, 255),
+            2
+        )
