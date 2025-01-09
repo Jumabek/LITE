@@ -8,6 +8,7 @@ lapx==0.5.10.post1
 loguru==0.7.2
 opencv-python==4.10.0.84
 openpyxl==3.1.5
+albumentations
 pysocks==1.7.1
 regex==2024.7.24
 scikit-learn==1.5.0
