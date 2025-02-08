@@ -19,9 +19,7 @@ class OSNet:
         features_list = []
         full_boxes = []
         for box in bbox:
-            x1, y1, w, h = map(int, box[:4])
-            x2 = x1 + w
-            y2 = y1 + h
+            x1, y1, x2, y2 = map(int, box[:4])
 
             full_boxes.append([x1, y1, x2, y2])
 

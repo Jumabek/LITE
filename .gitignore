@@ -32,4 +32,5 @@ prime_reid_experiment/plots/
 runs/
 # ignore checkpoints
 *.pth
+*.csv
 # ignore images

@@ -24,9 +24,7 @@ class DeepSORT:
     def extract_appearance_features(self, image, boxes):
         features_list = []
         for box in boxes:
-            x1, y1, w, h = map(int, box[:4])
-            x2 = x1 + w
-            y2 = y1 + h
+            x1, y1, x2, y2 = map(int, box[:4])
             crop = image[y1:y2, x1:x2]
             crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
             feature = self.model([crop_rgb]).detach().cpu().numpy().squeeze()

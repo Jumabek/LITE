@@ -41,9 +41,11 @@ class StrongSORT:
     def extract_appearance_features(self, image, boxes):
         img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         features_list = []
+        # make boxes integers
+        boxes = boxes.astype(int)
 
         crops = [
-            self.transform(img_pil.crop((int(box[0]), int(box[1]), int(box[0]) + int(box[2]), int(box[1]) + int(box[3]))))
+            self.transform(img_pil.crop((box[0], box[1], box[2], box[3])))
             * 255.0
             for box in boxes
         ]

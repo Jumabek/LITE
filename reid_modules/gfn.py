@@ -1,6 +1,10 @@
 # Torch libs
 import torch
-import gdown 
+import gdown
+import logging
+logging.getLogger("torch").setLevel(logging.ERROR)
+
+
 ## Disable nvfuser for now
 torch._C._jit_override_can_fuse_on_cpu(False)
 torch._C._jit_override_can_fuse_on_gpu(False)
