@@ -8,14 +8,11 @@ from fastreid.utils.checkpoint import Checkpointer
 from fastreid.config import get_cfg
 from fastreid.modeling import build_model
 
-from .base_tracker import BaseTracker
-
-class StrongSORT(BaseTracker):
+class StrongSORT:
     def __init__(self, batch_size=16, device='cuda:0'):
-        super().__init__()
         self.device = device
         self.batch_size = batch_size
-        self.reid_model = self.load_model()
+        self.model = self.load_model()
         self.transform = self.get_transform()
 
     def load_model(self):
@@ -59,9 +56,3 @@ class StrongSORT(BaseTracker):
             features_list.extend(features)
 
         return features_list
-    
-    def predict(self, image):
-        results = self.detector.predict(image)
-
-        
-
