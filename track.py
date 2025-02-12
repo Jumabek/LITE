@@ -245,34 +245,16 @@ def run(sequence_dir, output_file,
 
 
     def frame_callback(vis, frame_idx):
-        # Initialize static variables for FPS calculation
-        if not hasattr(frame_callback, '_fps_vars'):
-            frame_callback._fps_vars = {
-                'last_time': time.time(),
-                'frames': 0,
-                'current_fps': 0
-            }
-        
         # Process frame
         detections = create_detections(sequence_dir, frame_idx, model, reid_model)
         tracker.predict()
-        tracker.update(detections)
-
-        # Update FPS calculation
-        frame_callback._fps_vars['frames'] += 1
-        elapsed = time.time() - frame_callback._fps_vars['last_time']
-        
-        if elapsed >= 1.0:
-            frame_callback._fps_vars['current_fps'] = frame_callback._fps_vars['frames'] / elapsed
-            frame_callback._fps_vars['frames'] = 0
-            frame_callback._fps_vars['last_time'] = time.time()
+        tracker.update(detections) 
 
         # Update visualization
         if visualize:
             image = cv2.imread(seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
             vis.set_image(image.copy())
             vis.draw_trackers(tracker.tracks)
-            # vis.draw_fps(frame_callback._fps_vars['current_fps']) # uncomment to show FPS
             # vis.draw_detections(detections)
             # vis.put_metadata()
             # vis.save_visualization()
