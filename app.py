@@ -64,6 +64,10 @@ def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280,
     else:
         if tracker_name == 'SORT':  # SORT does not need appearance features 
             appearance_features = [None] * len(boxes)
+        elif tracker_name.startswith('LITE'):
+            assert appearance_feature_layer is not None, "Appearance features are not extracted"
+            # LITE trackers do not need to extract appearance features again for boxes
+            appearance_features = yolo_results[0].appearance_features.cpu().numpy()
         else:
             appearance_features = reid_model.extract_appearance_features(image, boxes)
     
