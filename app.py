@@ -7,6 +7,8 @@ import os
 sys.path.append(os.path.join(os.getcwd(), 'yolo_tracking'))
 
 from pathlib import Path
+import threading
+import queue  # For thread-safe communication
 
 from yolo_tracking.boxmot import DeepOCSORT, BoTSORT, OCSORT, BYTETracker
 
@@ -27,14 +29,14 @@ warnings.filterwarnings("ignore")
 import streamlit as st
 import tempfile
 
+# Define your tracker list as before
 boxmot_trackers = ['BoTSORT', 'OCSORT', 'ByteTrack',
-                       'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT']
+                   'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT']
 
 def process_uploaded_video(video_file):
     with tempfile.NamedTemporaryFile(delete=False) as tfile:
         tfile.write(video_file.read())
         return tfile.name
-
 
 def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280, 
                       conf=0.25, appearance_feature_layer=None):
@@ -43,27 +45,28 @@ def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280,
     detection_list = []
 
     # Custom YOLO detections
-    yolo_results = model.predict(image, verbose=False, imgsz=imgsz, classes=0,
-    conf=conf, appearance_feature_layer=appearance_feature_layer, return_feature_map=False)
+    yolo_results = model.predict(
+        image, verbose=False, imgsz=imgsz, classes=0,
+        conf=conf, appearance_feature_layer=appearance_feature_layer, return_feature_map=False
+    )
     
     boxes = yolo_results[0].boxes.data.cpu().numpy()
 
     appearance_features = None
     if tracker_name.startswith('LITE'):
         assert appearance_feature_layer is not None, "Appearance features are not extracted"
-        # Lite do not need to extract appearance features again for boxes
+        # LITE trackers do not need to extract appearance features again for boxes
         appearance_features = yolo_results[0].appearance_features.cpu().numpy()
     
     if tracker_name in boxmot_trackers:
         return boxes, appearance_features
 
     else:
-        if tracker_name == 'SORT': # SORT does not need appearance features 
-            appearance_features =  [None] * len(boxes)
+        if tracker_name == 'SORT':  # SORT does not need appearance features 
+            appearance_features = [None] * len(boxes)
         else:
             appearance_features = reid_model.extract_appearance_features(image, boxes)
     
-
     for box, feature in zip(boxes, appearance_features):
         xmin, ymin, xmax, ymax, conf, _ = box
         conf = float(conf)
@@ -75,23 +78,23 @@ def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280,
 
     return detection_list
 
-def run(tracker_name, yolo_model, video_path,
-    nn_budget, device, appearance_feature_layer=None, visualize=True,
-    max_cosine_distance=0.7, max_age=30):
-
-    stframe = st.empty()
-    
+def run_tracker(tracker_name, yolo_model, video_path,
+                nn_budget, device, appearance_feature_layer, out_queue,
+                max_cosine_distance=0.7, max_age=30):
+    """
+    This function runs the tracker and pushes processed frames into out_queue.
+    Note: It does not call any Streamlit functions.
+    """
     metric = nn_matching.NearestNeighborDistanceMetric(
         'cosine',
         max_cosine_distance,
         nn_budget
     )
 
+    # Initialize default tracker for DeepSORT-like methods.
     tracker = Tracker(metric, max_age=max_age)
 
-    tick = time.time()
-
-    # Load the detection YOLO model    
+    # Load YOLO detection model    
     model_path = yolo_model + '.pt'
     model = YOLO(model_path)
     model.to(device)
@@ -136,12 +139,11 @@ def run(tracker_name, yolo_model, video_path,
             fp16=False,
             appearance_feature_layer=appearance_feature_layer)
         
-    # Open the video
+    # Open the video file
     cap = cv2.VideoCapture(video_path)
     frame_idx = 0
 
     while cap.isOpened():
-
         ret, frame = cap.read()
         if not ret:
             break
@@ -149,8 +151,8 @@ def run(tracker_name, yolo_model, video_path,
         tick = time.time()
 
         # Process frame
-        detections = create_detections(frame, model, tracker_name, reid_model, appearance_feature_layer=appearance_feature_layer)
-
+        detections = create_detections(frame, model, tracker_name, reid_model, 
+                                       appearance_feature_layer=appearance_feature_layer)
         if isinstance(detections, tuple):
             boxes, appearance_features = detections
             if tracker_name.startswith('LITE'):
@@ -163,38 +165,36 @@ def run(tracker_name, yolo_model, video_path,
                 color = (0, 255, 0)
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                 cv2.putText(frame, f"ID {int(track_id)}", (int(x1), int(y1) - 10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-            
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         else:
             tracker.predict()
             tracker.update(detections)
             tracks = tracker.tracks
 
-            # Store results
             for track in tracks:
                 if not track.is_confirmed() or track.time_since_update > 1:
                     continue
                 bbox = track.to_tlwh()
-                
-                # Draw the bounding box and ID
-                if visualize:
-                    x, y, w, h = map(int, bbox)
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    cv2.putText(frame, str(track.track_id), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                x, y, w, h = map(int, bbox)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                cv2.putText(frame, str(track.track_id), (x, y), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         tock = time.time()
-
         fps = 1 / (tock - tick)
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(frame, f"Frame: {frame_idx}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            
-        stframe.image(frame, channels="BGR")
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        
+        # Instead of updating a Streamlit placeholder here, push the frame to the queue.
+        if not out_queue.empty():
+            try:
+                out_queue.get_nowait()
+            except queue.Empty:
+                pass
+        out_queue.put(frame)
 
         frame_idx += 1
-    
+
     cap.release()
     cv2.destroyAllWindows()
 
@@ -209,14 +209,23 @@ def init_session_state():
 init_session_state()
 
 if __name__ == '__main__':
-    st.title("Real-Time Object Tracking")
+    st.title("Real-Time Object Tracking with Two Threads (Queue-based UI Updates)")
     init_session_state()
 
-    tracker_name = st.selectbox('Select Tracker', ['DeepSORT', 'StrongSORT', 'BoTSORT', 'OCSORT', 'ByteTrack', 
-                                                   'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT',
-                                                   'SORT', 'LITEStrongSORT', 'LITEDeepSORT'])
-    yolo_model = st.selectbox('YOLO Model', ['yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x', 
-                                             'yolo11n', 'yolo11s', 'yolo11m', 'yolo11l', 'yolo11x',])
+    # Tracker selections for two threads
+    tracker1_name = st.selectbox('Select Tracker for Thread 1', 
+                                 ['DeepSORT', 'StrongSORT', 'BoTSORT', 'OCSORT', 'ByteTrack', 
+                                  'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT', 'SORT', 
+                                  'LITEStrongSORT', 'LITEDeepSORT'], key='tracker1')
+
+    tracker2_name = st.selectbox('Select Tracker for Thread 2', 
+                                 ['DeepSORT', 'StrongSORT', 'BoTSORT', 'OCSORT', 'ByteTrack', 
+                                  'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT', 'SORT', 
+                                  'LITEStrongSORT', 'LITEDeepSORT'], key='tracker2')
+
+    yolo_model = st.selectbox('YOLO Model', 
+                              ['yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x', 
+                               'yolo11n', 'yolo11s', 'yolo11m', 'yolo11l', 'yolo11x'])
     
     video_file = st.file_uploader('Upload Video', type=['mp4', 'avi', 'mov'])
     nn_budget = 100
@@ -224,15 +233,58 @@ if __name__ == '__main__':
     appearance_feature_layer = st.text_input('Appearance Feature Layer', '')
 
     if video_file:
-        st.session_state.video_path =  process_uploaded_video(video_file)
+        st.session_state.video_path = process_uploaded_video(video_file)
 
-    if st.button('Run'):
-        run(
-            tracker_name=tracker_name,
-            yolo_model=yolo_model,
-            video_path=st.session_state.video_path,
-            nn_budget=nn_budget,
-            device=device,
-            appearance_feature_layer=appearance_feature_layer if appearance_feature_layer else None,
-            visualize=True
-        )
+    if st.button('Run Both Trackers'):
+        if st.session_state.video_path is None:
+            st.error("Please upload a video first.")
+        else:
+            # Create two placeholders for side-by-side display
+            col1, col2 = st.columns(2)
+            placeholder1 = col1.empty()
+            placeholder2 = col2.empty()
+
+            # Create thread-safe queues to pass frames from each tracker thread
+            frame_queue1 = queue.Queue(maxsize=1)
+            frame_queue2 = queue.Queue(maxsize=1)
+
+            # Start tracker threads (they will push frames to the queues)
+            thread1 = threading.Thread(
+                target=run_tracker, 
+                args=(
+                    tracker1_name, 
+                    yolo_model, 
+                    st.session_state.video_path, 
+                    nn_budget, 
+                    device, 
+                    appearance_feature_layer if appearance_feature_layer else None, 
+                    frame_queue1
+                )
+            )
+            thread2 = threading.Thread(
+                target=run_tracker, 
+                args=(
+                    tracker2_name, 
+                    yolo_model, 
+                    st.session_state.video_path, 
+                    nn_budget, 
+                    device, 
+                    appearance_feature_layer if appearance_feature_layer else None, 
+                    frame_queue2
+                )
+            )
+            thread1.start()
+            thread2.start()
+
+            # In the main thread, update the Streamlit placeholders by reading from the queues.
+            while thread1.is_alive() or thread2.is_alive():
+                if not frame_queue1.empty():
+                    frame1 = frame_queue1.get()
+                    placeholder1.image(frame1, channels="BGR")
+                if not frame_queue2.empty():
+                    frame2 = frame_queue2.get()
+                    placeholder2.image(frame2, channels="BGR")
+                time.sleep(0.03)
+
+            thread1.join()
+            thread2.join()
