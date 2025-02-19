@@ -6,7 +6,7 @@ BENCHMARK="MOT20"
 BASE_CMD="python TrackEval/scripts/run_mot_challenge.py"
 
 # Parent directory where all trackers' results are stored
-PARENT_TRACKERS_FOLDER="results/gfn"
+PARENT_TRACKERS_FOLDER="results/exp_conf_0.01/model"
 
 echo "Starting the evaluation script..."
 
@@ -14,7 +14,7 @@ echo "Starting the evaluation script..."
 echo "-------------------------------------------"
 echo "Processing resolution: ${res}, and confidence: ${conf}"
 
-# Construct the command
+# Construct the command 
 EVAL_CMD="${BASE_CMD} \
             --BENCHMARK ${BENCHMARK} \
             --TRACKERS_FOLDER ${PARENT_TRACKERS_FOLDER} \

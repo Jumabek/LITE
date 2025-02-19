@@ -111,7 +111,7 @@ class Tracker:
                 cost_matrix, tracks, dets, track_indices,
                 detection_indices)
             return cost_matrix
-
+        
         if opt.tracker_name == "SORT":
             # If IOU_ONLY flag is set, skip the appearance feature matching and perform only IOU matching.
             matches, unmatched_tracks, unmatched_detections = \

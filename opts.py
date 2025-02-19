@@ -119,7 +119,7 @@ class opts:
         self.parser.add_argument(
             '--tracker_name',
             type=str,
-            default='LITEDeepSORT',
+            default='SORT',
             help='LITEDeepSORT or StrongSORT or DeepSORT or SORT',
         )
         self.parser.add_argument(

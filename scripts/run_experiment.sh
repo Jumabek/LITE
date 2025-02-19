@@ -2,12 +2,20 @@
 
 # Resolutions and other constants
 INPUT_RESOLUTIONS=(1280)
+<<<<<<< Updated upstream
 CONFIDENCE_LEVELS=(0.25)
 DATASETS=("MOT20")
 SPLIT="train"
 MODELS=('yolov8m')
 
+=======
+CONFIDENCE_LEVELS=(0.01)
+DATASETS=("MOT20")
+SPLIT="train"
+MODELS=('yolov8m')
+>>>>>>> Stashed changes
 
+#n' 'ablation_17s
 usage() {
     echo "Usage: $0 -s SPLIT"
     echo "  -s SPLIT     Split (e.g., train)"
@@ -60,7 +68,11 @@ do
                 echo "-----------------------------------"
                 echo "Running tracker: ${TRACKER_NAME} with YOLO model: ${YOLO_MODEL} at confidence: ${CONFIDENCE}"
 
+<<<<<<< Updated upstream
                 DIR_SAVE="results/fps-exp/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
+=======
+                DIR_SAVE="results/exp_conf_0.01/model/${DATASET}-${SPLIT}/${TRACKER_NAME}__input_${INPUT_RESOLUTION}__conf_${CONFIDENCE}__model_${YOLO_MODEL}"
+>>>>>>> Stashed changes
                 mkdir -p "${DIR_SAVE}"
 
                 case ${TRACKER_NAME} in
@@ -106,8 +118,16 @@ do
             }
 
             # Loop through models and trackers
+<<<<<<< Updated upstream
             TRACKERS=("LITEStrongSORT")
 
+=======
+            #TRACKERS=("SORT" )
+            #TRACKERS=("LITEBoTSORT" "LITEDeepOCSORT")
+            #TRACKERS=('Bytetrack' 'OCSORT' 'LITEDeepSORT' '')
+            #TRACKERS=("DeepOCSORT" "LITEDeepOCSORT" "BoTSORT" "LITEBoTSORT")
+            TRACKERS=("LITEDeepSORT")
+>>>>>>> Stashed changes
             for YOLO_MODEL in "${MODELS[@]}"; do
                 for TRACKER in "${TRACKERS[@]}"; do
                     run_tracker "${TRACKER}" "${YOLO_MODEL}"
