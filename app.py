@@ -79,7 +79,7 @@ def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280,
     return detection_list
 
 def run_tracker(tracker_name, yolo_model, video_path,
-                nn_budget, device, appearance_feature_layer, out_queue,
+                nn_budget, device, appearance_feature_layer, out_queue, conf=0.25, 
                 max_cosine_distance=0.7, max_age=30):
     """
     This function runs the tracker and pushes processed frames into out_queue.
@@ -116,7 +116,9 @@ def run_tracker(tracker_name, yolo_model, video_path,
     elif 'BoTSORT' in tracker_name:
         if tracker_name == 'LITEBoTSORT':
             assert appearance_feature_layer is not None, "Please provide appearance feature layer for LITEBoTSORT"
-
+        else:
+            appearance_feature_layer = None
+        
         tracker = BoTSORT(
             model_weights=Path('osnet_x0_25_msmt17.pt'),
             device=device,
@@ -132,7 +134,9 @@ def run_tracker(tracker_name, yolo_model, video_path,
     elif 'DeepOCSORT' in tracker_name:
         if tracker_name == 'LITEDeepOCSORT':
             assert appearance_feature_layer is not None, "Please provide appearance feature layer for LITEDeepOCSORT"
-        
+        else:
+            appearance_feature_layer = None
+            
         tracker = DeepOCSORT(
             model_weights=Path('osnet_x0_25_msmt17.pt'),
             device=device,
@@ -152,7 +156,7 @@ def run_tracker(tracker_name, yolo_model, video_path,
 
         # Process frame
         detections = create_detections(frame, model, tracker_name, reid_model, 
-                                       appearance_feature_layer=appearance_feature_layer)
+                                       appearance_feature_layer=appearance_feature_layer, conf=conf)
         if isinstance(detections, tuple):
             boxes, appearance_features = detections
             if tracker_name.startswith('LITE'):
@@ -184,6 +188,8 @@ def run_tracker(tracker_name, yolo_model, video_path,
         fps = 1 / (tock - tick)
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.putText(frame, f"Frame: {frame_idx}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f"Tracker: {tracker_name}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        
         
         # Instead of updating a Streamlit placeholder here, push the frame to the queue.
         if not out_queue.empty():
@@ -230,7 +236,8 @@ if __name__ == '__main__':
     video_file = st.file_uploader('Upload Video', type=['mp4', 'avi', 'mov'])
     nn_budget = 100
     device = st.selectbox('Device', ['cuda:0', 'cpu'])
-    appearance_feature_layer = st.text_input('Appearance Feature Layer', '')
+    appearance_feature_layer = 'layer14'
+    conf = st.number_input(label='conf', min_value=0.0, max_value=1.0, step=0.05, value=0.25)
 
     if video_file:
         st.session_state.video_path = process_uploaded_video(video_file)
@@ -258,7 +265,8 @@ if __name__ == '__main__':
                     nn_budget, 
                     device, 
                     appearance_feature_layer if appearance_feature_layer else None, 
-                    frame_queue1
+                    frame_queue1,
+                    conf
                 )
             )
             thread2 = threading.Thread(
@@ -270,7 +278,8 @@ if __name__ == '__main__':
                     nn_budget, 
                     device, 
                     appearance_feature_layer if appearance_feature_layer else None, 
-                    frame_queue2
+                    frame_queue2,
+                    conf,
                 )
             )
             thread1.start()
