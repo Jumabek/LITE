@@ -83,7 +83,7 @@ def create_detections(image, model, tracker_name, reid_model=None, imgsz=1280,
     return detection_list
 
 def run_tracker(tracker_name, yolo_model, video_path,
-                nn_budget, device, appearance_feature_layer, out_queue, conf=0.25, 
+                nn_budget, device, appearance_feature_layer, out_queue, out_queue2, conf=0.25, 
                 max_cosine_distance=0.7, max_age=30):
     """
     This function runs the tracker and pushes processed frames into out_queue.
@@ -150,7 +150,7 @@ def run_tracker(tracker_name, yolo_model, video_path,
     # Open the video file
     cap = cv2.VideoCapture(video_path)
     frame_idx = 0
-
+    ttick = time.time()
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -204,6 +204,9 @@ def run_tracker(tracker_name, yolo_model, video_path,
         out_queue.put(frame)
 
         frame_idx += 1
+    ttock = time.time()
+    ttime = ttock - ttick
+    out_queue2.put((frame_idx, ttime))
 
     cap.release()
     cv2.destroyAllWindows()
@@ -222,13 +225,16 @@ if __name__ == '__main__':
     st.title("Real-Time Object Tracking with Two Threads (Queue-based UI Updates)")
     init_session_state()
 
-    # Tracker selections for two threads
-    tracker1_name = st.selectbox('Select Tracker for Thread 1', 
+    tr1, tr2 = st.columns(2)
+    with tr1:
+        # Tracker selections for two threads
+        tracker1_name = st.selectbox('Select Tracker for Thread 1', 
                                  ['DeepSORT', 'StrongSORT', 'BoTSORT', 'OCSORT', 'ByteTrack', 
                                   'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT', 'SORT', 
                                   'LITEStrongSORT', 'LITEDeepSORT'], key='tracker1')
 
-    tracker2_name = st.selectbox('Select Tracker for Thread 2', 
+    with tr2:    
+        tracker2_name = st.selectbox('Select Tracker for Thread 2', 
                                  ['DeepSORT', 'StrongSORT', 'BoTSORT', 'OCSORT', 'ByteTrack', 
                                   'DeepOCSORT', 'LITEBoTSORT', 'LITEDeepOCSORT', 'SORT', 
                                   'LITEStrongSORT', 'LITEDeepSORT'], key='tracker2')
@@ -239,9 +245,12 @@ if __name__ == '__main__':
     
     video_file = st.file_uploader('Upload Video', type=['mp4', 'avi', 'mov'])
     nn_budget = 100
-    device = st.selectbox('Device', ['cuda:0', 'cpu'])
     appearance_feature_layer = 'layer14'
-    conf = st.number_input(label='conf', min_value=0.0, max_value=1.0, step=0.05, value=0.25)
+    cl1, cl2 = st.columns(2)
+    with cl1:
+        conf = st.number_input(label='conf', min_value=0.0, max_value=1.0, step=0.05, value=0.25)
+    with cl2:
+        device = st.selectbox('Device', ['cuda:0', 'cpu'])
 
     if video_file:
         st.session_state.video_path = process_uploaded_video(video_file)
@@ -258,6 +267,8 @@ if __name__ == '__main__':
             # Create thread-safe queues to pass frames from each tracker thread
             frame_queue1 = queue.Queue(maxsize=1)
             frame_queue2 = queue.Queue(maxsize=1)
+            frame_time1 = queue.Queue(maxsize=1)
+            frame_time2 = queue.Queue(maxsize=1)
 
             # Start tracker threads (they will push frames to the queues)
             thread1 = threading.Thread(
@@ -270,7 +281,9 @@ if __name__ == '__main__':
                     device, 
                     appearance_feature_layer if appearance_feature_layer else None, 
                     frame_queue1,
+                    frame_time1,
                     conf
+                    
                 )
             )
             thread2 = threading.Thread(
@@ -283,9 +296,12 @@ if __name__ == '__main__':
                     device, 
                     appearance_feature_layer if appearance_feature_layer else None, 
                     frame_queue2,
-                    conf,
+                    frame_time2,
+                    conf
+                    
                 )
             )
+
             thread1.start()
             thread2.start()
 
@@ -298,6 +314,52 @@ if __name__ == '__main__':
                     frame2 = frame_queue2.get()
                     placeholder2.image(frame2, channels="BGR")
                 time.sleep(0.03)
+            frame_n1,total_time1  = frame_time1.get()
+            frame_n2, total_time2 = frame_time2.get()
 
             thread1.join()
             thread2.join()
+
+            average_fps1 = frame_n1 / total_time1 if total_time1 > 0 else 0
+            average_fps2 = frame_n2 / total_time2 if total_time2 > 0 else 0
+
+            # Step 4: Print results
+            
+            columna, columnb = st.columns(2)
+            with columna:
+                st.markdown(
+                    f"""
+                    <style>
+                    .aligned-text {{
+                        font-size: 14px;
+                        font-family: monospace;
+                        white-space: pre;
+                    }}
+                    </style>
+                    <div class="aligned-text">
+                    Tracker                : {tracker1_name}  
+                    Total Processing Time  : {total_time1:.2f} seconds  
+                    Average FPS            : {average_fps1:.2f}  
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with columnb:
+                st.markdown(
+                    f"""
+                    <style>
+                    .aligned-text {{
+                        font-size: 14px;
+                        font-family: monospace;
+                        white-space: pre;
+                    }}
+                    </style>
+                    <div class="aligned-text">
+                    Tracker                : {tracker2_name}  
+                    Total Processing Time  : {total_time2:.2f} seconds  
+                    Average FPS            : {average_fps2:.2f}  
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
