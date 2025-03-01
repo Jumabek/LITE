@@ -152,6 +152,7 @@ def run_tracker(tracker_name, yolo_model, video_path,
     cap = cv2.VideoCapture(video_path)
     frame_idx = 0
     ttick = time.time()
+    ttick = time.time()
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -208,6 +209,9 @@ def run_tracker(tracker_name, yolo_model, video_path,
         out_queue.put(frame)
 
         frame_idx += 1
+    ttock = time.time()
+    ttime = ttock - ttick
+    out_queue2.put((frame_idx, ttime))
     ttock = time.time()
     ttime = ttock - ttick
     out_queue2.put((frame_idx, ttime))
