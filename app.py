@@ -211,9 +211,7 @@ def run_tracker(tracker_name, yolo_model, video_path,
         frame_idx += 1
     ttock = time.time()
     ttime = ttock - ttick
-    out_queue2.put((frame_idx, ttime))
-    ttock = time.time()
-    ttime = ttock - ttick
+    print(f"Total time taken: {ttime:.2f} seconds")
     out_queue2.put((frame_idx, ttime))
 
     cap.release()
@@ -282,25 +280,28 @@ if st.button('Run Selected Trackers'):
         frame_time2 = queue.Queue(maxsize=1)
 
         # Start tracker thread 1
-        thread1 = threading.Thread(
-            target=run_tracker,
-            args=(
-                tracker1_name,
-                yolo_model,
-                st.session_state.video_path,
-                nn_budget,
-                device,
-                appearance_feature_layer if appearance_feature_layer else None,
-                frame_queue1,
-                frame_time1,
-                conf
+        thread1 = None
+        if tracker1_name and tracker1_name != 'None':
+
+            thread1 = threading.Thread(
+                target=run_tracker,
+                args=(
+                    tracker1_name,
+                    yolo_model,
+                    st.session_state.video_path,
+                    nn_budget,
+                    device,
+                    appearance_feature_layer if appearance_feature_layer else None,
+                    frame_queue1,
+                    frame_time1,
+                    conf
+                )
             )
-        )
-        thread1.start()
+            thread1.start()
 
         # Start tracker thread 2 **only if both trackers are selected**
         thread2 = None
-        if tracker1_name and tracker2_name and tracker1_name != 'None' and tracker2_name != 'None' and tracker1_name != tracker2_name:
+        if tracker2_name and tracker2_name != 'None' and tracker1_name != tracker2_name:
             thread2 = threading.Thread(
                 target=run_tracker,
                 args=(
@@ -318,50 +319,56 @@ if st.button('Run Selected Trackers'):
             thread2.start()
 
         # Update UI with results
-        while thread1.is_alive() or (thread2 and thread2.is_alive()):
-            if not frame_queue1.empty():
+        while (thread1 and thread1.is_alive()) or (thread2 and thread2.is_alive()):
+            if thread1 and not frame_queue1.empty():
                 frame1 = frame_queue1.get()
                 placeholder1.image(frame1, channels="BGR")
             if thread2 and not frame_queue2.empty():
                 frame2 = frame_queue2.get()
                 placeholder2.image(frame2, channels="BGR")
-            time.sleep(0.03)
+            time.sleep(0.01)
 
         # Always get thread1 results
-        frame_n1, total_time1 = frame_time1.get()
-        average_fps1 = frame_n1 / total_time1 if total_time1 > 0 else 0
+        frame_n1, total_time1, average_fps1 = 0, 0, 0
+        if thread1: 
+            frame_n1, total_time1 = frame_time1.get()
+            average_fps1 = frame_n1 / total_time1 if total_time1 > 0 else 0
 
         # Get thread2 results only if it was started
         frame_n2, total_time2, average_fps2 = 0, 0, 0
         if thread2:
             frame_n2, total_time2 = frame_time2.get()
             average_fps2 = frame_n2 / total_time2 if total_time2 > 0 else 0
-
-        thread1.join()
+        print(frame_n1)
+        print(frame_n2)
+        if thread1:
+            thread1.join()
         if thread2:
             thread2.join()
-
+        print(frame_n1)
+        print(frame_n2)
         # Display results
         columna, columnb = st.columns(2)
 
         with columna:
-            st.markdown(
-                f"""
-                <style>
-                .aligned-text {{
-                    font-size: 14px;
-                    font-family: monospace;
-                    white-space: pre;
-                }}
-                </style>
-                <div class="aligned-text">
-                Tracker                : {tracker1_name if tracker1_name != 'None' else 'N/A'}  
-                Total Processing Time  : {total_time1:.2f} seconds  
-                Average FPS            : {average_fps1:.2f}  
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            if thread1 and tracker1_name != 'None':
+                st.markdown(
+                    f"""
+                    <style>
+                    .aligned-text {{
+                        font-size: 14px;
+                        font-family: monospace;
+                        white-space: pre;
+                    }}
+                    </style>
+                    <div class="aligned-text">
+                    Tracker                : {tracker1_name if tracker1_name != 'None' else 'N/A'}  
+                    Total Processing Time  : {total_time1:.2f} seconds  
+                    Average FPS            : {average_fps1:.2f}  
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
         # Always show column for tracker 2, but indicate if no second tracker was used
         with columnb:
@@ -383,21 +390,21 @@ if st.button('Run Selected Trackers'):
                     """,
                     unsafe_allow_html=True
                 )
-            else:
-                st.markdown(
-                    f"""
-                    <style>
-                    .aligned-text {{
-                        font-size: 14px;
-                        font-family: monospace;
-                        white-space: pre;
-                    }}
-                    </style>
-                    <div class="aligned-text">
-                    Tracker                : N/A  
-                    Total Processing Time  : N/A  
-                    Average FPS            : N/A  
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+            # else:
+            #     st.markdown(
+            #         f"""
+            #         <style>
+            #         .aligned-text {{
+            #             font-size: 14px;
+            #             font-family: monospace;
+            #             white-space: pre;
+            #         }}
+            #         </style>
+            #         <div class="aligned-text">
+            #         Tracker                : N/A  
+            #         Total Processing Time  : N/A  
+            #         Average FPS            : N/A  
+            #         </div>
+            #         """,
+            #         unsafe_allow_html=True
+            #     )
