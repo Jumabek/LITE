@@ -138,6 +138,9 @@ python reid.py --dataset <DATASET> --seq_name <SEQ_NAME>  --split <SPLIT>  --tra
 
 ## Demo
 
+Comparison of Tracker and LITE versions. Tracker can be viewed on Google Drive.
+👉[![Watch the demo](https://drive.google.com/drive/folders/1Fw57pfG5UBSH3Wj8ejoDPgtybNl7P-Qg?usp=drive_link)]
+
 ### Download demo videos
 
 ```
