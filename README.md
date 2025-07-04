@@ -7,7 +7,8 @@
 > *[arXiv 2409.04187](http://www.arxiv.org/abs/2409.04187v2)*
 > 
 > *![Published at ICONIP2024](assets/ICONIP2024_Certificate_of_Presentation_Paper_1.pdf)*
-
+> Download full paper from this repo: [docs/LITE.pdf](docs/LITE.pdf)*
+> Keywords: multi-object tracking, MOT, object tracking, ReID, computer vision, real-time tracking, LITE, arXiv 2409.04187
 
 ## Overview
 
