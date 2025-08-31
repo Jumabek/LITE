@@ -21,7 +21,7 @@
 > 
 > *IEEE Access, vol. 13, pp. 34768–34788, 2025*
 > 
-> Download the full paper from this repo: [docs/LITE.pdf](docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf)
+> Download the full paper from this repo: [docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf](docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf)
 >
 > Keywords: Multiple object tracking (MOT), real-time tracking, evaluation framework, LITE, ReID, performance evaluation
 > 
