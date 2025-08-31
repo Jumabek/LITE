@@ -12,6 +12,19 @@
 >
 > Keywords: multi-object tracking, MOT, object tracking, ReID, computer vision, real-time tracking, LITE, arXiv 2409.04187
 
+
+# Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance
+
+> [**Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance**](https://doi.org/10.1109/ACCESS.2025.3541177)  
+> 
+> Jumabek Alikhanov, Dilshod Obidov, Mirsaid Abdurasulov, Hakil Kim
+> 
+> *IEEE Access, vol. 13, pp. 34768–34788, 2025*
+> 
+> Download the full paper from this repo: [docs/LITE.pdf](docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf)
+>
+> Keywords: Multiple object tracking (MOT), real-time tracking, evaluation framework, LITE, ReID, performance evaluation
+> 
 ## Overview
 
 LITE (Lightweight Integrated Tracking-Feature Extraction) introduces a groundbreaking approach to enhance ReID-based Multi-Object Tracking (MOT) systems. By integrating appearance feature extraction directly into the detection pipeline, LITE significantly improves computational efficiency while maintaining robust performance. Utilizing CNN-based object detectors like YOLOv8 and YOLO11, LITE enables real-time tracking, making it ideal for resource-constrained environments.
