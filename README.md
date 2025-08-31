@@ -202,3 +202,17 @@ If you use LITE in your research, please cite our work:
       url={https://arxiv.org/abs/2409.04187}, 
 }
 ```
+
+```bibtex
+@ARTICLE{10883969,
+  author={Alikhanov, Jumabek and Obidov, Dilshod and Abdurasulov, Mirsaid and Kim, Hakil},
+  journal={IEEE Access}, 
+  title={Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance}, 
+  year={2025},
+  volume={13},
+  number={},
+  pages={34768-34788},
+  keywords={Tracking;Detectors;Pipelines;Training;Benchmark testing;Image edge detection;Feature extraction;Real-time systems;Cameras;Performance evaluation;Multiple object tracking (MOT);real-time tracking;evaluation framework;LITE;ReID},
+  doi={10.1109/ACCESS.2025.3541177}}
+```
+
