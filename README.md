@@ -121,7 +121,7 @@ LITE/datasets
 
 ## Checkpoints
 
-Download the required checkpoints from [this link](https://drive.google.com/file/d/1L4gnCbkmvGB6HbPPs1YK8O2fERBS-Xvn) and place them under `LITE/checkpoints`:
+Download the required checkpoints from [this link](https://drive.google.com/file/d/15NBT6pnwzf43MsNu1QK_qC04Efxg0yTP/view?usp=sharing) and place them under `LITE/checkpoints`:
 
 ```plaintext
 checkpoints
