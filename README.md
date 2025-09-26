@@ -101,7 +101,7 @@ bash scripts/setup_fastreid.sh
 
 ## Dataset Preparation
 
-Download the prepared datasets from [this link](https://drive.google.com/drive/folders/1hlX2n5FVFGXOJrQMVSxnSmSNW7TM_BZ3) and organize them as follows:
+Download the prepared datasets from [this link](https://console.cloud.google.com/storage/browser/hbai-general-data/2024/cv.lite/dataset) and organize them as follows:
 
 ```plaintext
 LITE/datasets
