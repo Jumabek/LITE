@@ -34,3 +34,13 @@ runs/
 *.pth
 *.csv
 # ignore images
+*.jpg
+*.jpeg
+*.png
+*.pdf
+#ignore videos
+*.mp4
+*.avi
+*.mov
+#ignore zip files
+*.zip

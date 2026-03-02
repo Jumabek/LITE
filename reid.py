@@ -17,7 +17,7 @@ def run_reid_evaluator(tracker, dataset, seq_name, split, output_path, save, app
     if tracker == 'LITE':
         tracker_name = f'LITE_{appearance_feature_layer}' 
 
-    plotter = Plotter(tracker_name, pos_matches, neg_matches, output_path, save)
+    plotter = Plotter(tracker_name, seq_name, pos_matches, neg_matches, output_path, save)
 
     plotter.plot_roc_curve()
     plotter.plot_reid_distribution()
@@ -43,17 +43,16 @@ def parse_args():
     parser.add_argument("--appearance_feature_layer", type=str, default='layer14',
                         help="Specify the appearance feature layer for LITE.")
     parser.add_argument("--tracker", type=str, default='LITE', choices=[
-                        'LITE', 'StrongSORT', 'DeepSORT', 'OSNet', 'GFN', 'all'], help="Specify the tracker model to use.")
+                        'LITE', 'StrongSORT', 'DeepSORT', 'OSNet', 'GFN', 'FaceNet', 'ArcFace', 'all'], help="Specify the tracker model to use.")
     return parser.parse_args()
 
-# running example: python reid.py --dataset MOT20 --seq_name MOT20-01 --split train --tracker LITE --output_path reid/data --save
-# --appearance_feature_layer layer14
+# running example: python reid.py --dataset Face_Recognition --seq_name videoa1-1 --split train --tracker InsightFace --output_path reid/data --save #--appearance_feature_layer layer14
 
 if __name__ == '__main__':
     args = parse_args()
     dataset, seq_name, split = args.dataset, args.seq_name, args.split
 
-    trackers = ['OSNet', 'LITE', 'StrongSORT', 'DeepSORT'] if args.tracker == 'all' else [args.tracker]
+    trackers = ['OSNet', 'LITE', 'StrongSORT', 'FaceNet', 'DeepSORT', 'ArcFace'] if args.tracker == 'all' else [args.tracker]
 
     for tracker in trackers:
         run_reid_evaluator(tracker, dataset, seq_name, split,

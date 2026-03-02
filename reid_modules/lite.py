@@ -36,7 +36,7 @@ class LITE:
             h_map, w_map = appearance_feature_map.shape[1:]
 
             x1, x2, y1, y2 = map(int, [x1 * w_map / org_w - 1, x2 * w_map /
-                                 org_w + 1, y1 * h_map / org_h - 1, y2 * h_map / org_h+1])
+                                 org_w + 1, y1 * h_map / org_h - 1, y2 * h_map / org_h + 1])
             # ensure the box is within the image (padding)
             x1, y1 = max(0, x1), max(0, y1)
             x2, y2 = min(w_map, x2), min(h_map, y2)

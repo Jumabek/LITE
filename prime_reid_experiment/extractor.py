@@ -4,7 +4,7 @@ import cv2
 from os.path import join
 import os
 from ultralytics import YOLO
-from reid_modules import LITE, StrongSORT, DeepSORT, OSNet
+from reid_modules import LITE, StrongSORT, DeepSORT, OSNet, FaceNet, ArcFace
 from reid_modules.gfn import GFN
 
 class AppearanceExtractor:
@@ -38,7 +38,12 @@ class AppearanceExtractor:
         
         elif self.tracker == 'GFN':
             return GFN(device=self.device)
-
+        
+        elif self.tracker == 'FaceNet':
+            return FaceNet(device=self.device)
+        
+        elif self.tracker == 'ArcFace':
+            return ArcFace(device=self.device)
         else:
             raise ValueError(f"Tracker {self.tracker} not supported.")
 
@@ -71,7 +76,7 @@ class AppearanceExtractor:
         features = []
 
         frame_indices = sorted(gt[0].unique())
-        for frame_index in tqdm(frame_indices, desc="Extracting features"):
+        for frame_index in tqdm(frame_indices[:-1], desc="Extracting features"):
             image = self.get_image(frame_index)
             bbox = gt[(gt[0] == frame_index) & (
                 gt[7] == 1)][[2, 3, 4, 5]].values
@@ -90,3 +95,4 @@ class AppearanceExtractor:
             features.append(frame_features)
 
         return pd.concat(features).reset_index(drop=True)
+
