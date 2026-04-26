@@ -34,3 +34,7 @@ runs/
 *.pth
 *.csv
 # ignore images
+
+.venv/
+data/
+tmp/
