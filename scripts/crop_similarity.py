@@ -66,6 +66,13 @@ def parse_args():
         help="LITEStrongSORT YOLO confidence threshold.",
     )
     parser.add_argument(
+        "--models",
+        nargs="+",
+        default=["StrongSORT", "DeepSORT", "OSNet", "LITE"],
+        choices=["StrongSORT", "DeepSORT", "OSNet", "LITE"],
+        help="ReID models to compare.",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="Print machine-readable JSON instead of a text table.",
@@ -186,12 +193,10 @@ def get_query_specs(crop_paths):
 
 def get_identity4_specs():
     return [
-        ("positive", "id1 frame1 vs frame10", 0, 1),
-        ("positive", "id2 frame1 vs frame10", 2, 3),
-        ("negative", "id1 f1 vs id2 f1", 0, 2),
-        ("negative", "id1 f1 vs id2 f10", 0, 3),
-        ("negative", "id1 f10 vs id2 f1", 1, 2),
-        ("negative", "id1 f10 vs id2 f10", 1, 3),
+        ("positive", "ID 1: Frame 1 vs Frame 10", 0, 1),
+        ("positive", "ID 2: Frame 1 vs Frame 10", 2, 3),
+        ("negative", "Frame 1: ID 1 vs ID 2", 0, 2),
+        ("negative", "Frame 10: ID 1 vs ID 2", 1, 3),
     ]
 
 
@@ -211,6 +216,53 @@ def build_rows_by_model(features, crop_paths, pair_specs):
             for match_type, pair_label, index_a, index_b in pair_specs
         ]
     return rows_by_model
+
+
+def load_reid_models(model_names, device, yolo_model, appearance_feature_layer, imgsz, conf):
+    from ultralytics import YOLO
+
+    model_classes = {
+        "StrongSORT": load_class_from_file(
+            "crop_similarity_strongsort",
+            ROOT / "reid_modules" / "strongsort.py",
+            "StrongSORT",
+        ),
+        "DeepSORT": load_class_from_file(
+            "crop_similarity_deepsort",
+            ROOT / "reid_modules" / "deepsort.py",
+            "DeepSORT",
+        ),
+        "OSNet": load_class_from_file(
+            "crop_similarity_osnet",
+            ROOT / "reid_modules" / "osnet.py",
+            "OSNet",
+        ),
+        "LITE": load_class_from_file(
+            "crop_similarity_lite",
+            ROOT / "reid_modules" / "lite.py",
+            "LITE",
+        ),
+    }
+
+    reid_models = {}
+    if "StrongSORT" in model_names:
+        reid_models["StrongSORT"] = model_classes["StrongSORT"](device=device)
+    if "DeepSORT" in model_names:
+        reid_models["DeepSORT"] = model_classes["DeepSORT"](device=device)
+    if "OSNet" in model_names:
+        reid_models["OSNet"] = model_classes["OSNet"](device=device)
+    if "LITE" in model_names:
+        yolo = YOLO(yolo_model)
+        yolo.to(device)
+        reid_models["LITE"] = model_classes["LITE"](
+            model=yolo,
+            appearance_feature_layer=appearance_feature_layer,
+            imgsz=imgsz,
+            conf=conf,
+            device=device,
+        )
+
+    return reid_models
 
 
 def save_plot(rows_by_model, crop_paths, output_path):
@@ -264,11 +316,11 @@ def save_plot(rows_by_model, crop_paths, output_path):
 
     fig.suptitle("Crop Similarity: Query vs Candidate Crops", fontsize=16, fontweight="bold")
     fig.tight_layout()
-    fig.savefig(output_path, dpi=180)
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
-def save_identity_plot(rows_by_model, crop_paths, pair_specs, output_path):
+def save_identity_plots(rows_by_model, crop_paths, pair_specs, output_path):
     import cv2
     import numpy as np
     import matplotlib.pyplot as plt
@@ -281,7 +333,7 @@ def save_identity_plot(rows_by_model, crop_paths, pair_specs, output_path):
             raise FileNotFoundError(f"Could not read crop image: {path}")
         rgb_images.append(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
-    def fit_image(image, height=170, width=95):
+    def fit_image(image, height=150, width=84):
         src_h, src_w = image.shape[:2]
         scale = min(width / src_w, height / src_h)
         resized = cv2.resize(image, (max(1, int(src_w * scale)), max(1, int(src_h * scale))))
@@ -291,79 +343,99 @@ def save_identity_plot(rows_by_model, crop_paths, pair_specs, output_path):
         canvas[y:y + resized.shape[0], x:x + resized.shape[1]] = resized
         return canvas
 
-    def pair_card(image_a, image_b):
+    def pair_card(image_a, image_b, score):
         left = fit_image(image_a)
         right = fit_image(image_b)
-        gap = np.full((170, 38, 3), 255, dtype=np.uint8)
-        cv2.putText(gap, "vs", (4, 92), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
+        gap = np.full((left.shape[0], 54, 3), 255, dtype=np.uint8)
+        score_text = f"{score:.3f}"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.55
+        thickness = 2
+        text_size, _ = cv2.getTextSize(score_text, font, font_scale, thickness)
+        text_x = (gap.shape[1] - text_size[0]) // 2
+        text_y = (gap.shape[0] + text_size[1]) // 2
+        cv2.putText(gap, score_text, (text_x, text_y), font, font_scale, (0, 0, 0), thickness)
         return np.concatenate([left, gap, right], axis=1)
 
     models = list(rows_by_model.keys())
-    columns = len(pair_specs)
-    fig, axes = plt.subplots(
-        len(models),
-        columns,
-        figsize=(max(16, columns * 2.8), max(6, len(models) * 3.4)),
-        squeeze=False,
-    )
+    outputs = []
+    plot_configs = [
+        (
+            "positive",
+            "Positive Matches",
+            "Same identity across Frame 1 and Frame 10",
+            "#6bd34a",
+            output_path.with_name(f"{output_path.stem}_positive_matches{output_path.suffix}"),
+        ),
+        (
+            "negative",
+            "Negative Matches",
+            "Different identities in the same frame",
+            "#ff3b30",
+            output_path.with_name(f"{output_path.stem}_negative_matches{output_path.suffix}"),
+        ),
+    ]
 
-    for row_idx, model in enumerate(models):
-        for col_idx, ((match_type, pair_label, index_a, index_b), row) in enumerate(
-            zip(pair_specs, rows_by_model[model])
-        ):
-            ax = axes[row_idx][col_idx]
-            ax.imshow(pair_card(rgb_images[index_a], rgb_images[index_b]))
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_title(f"{pair_label}\nscore={row['similarity']:.4f}", fontsize=10)
+    for match_type, title, subtitle, color, split_output_path in plot_configs:
+        filtered_specs = [
+            spec for spec in pair_specs
+            if spec[0] == match_type
+        ]
+        columns = len(filtered_specs)
+        row_height = 1.22
+        column_width = 1.86
+        fig, axes = plt.subplots(
+            len(models),
+            columns,
+            figsize=(max(3.35, columns * column_width), max(4.25, len(models) * row_height)),
+            squeeze=False,
+        )
+        for row_idx, model in enumerate(models):
+            model_rows = [
+                row for row in rows_by_model[model]
+                if row["match_type"] == match_type
+            ]
+            for col_idx, ((_, pair_label, index_a, index_b), row) in enumerate(
+                zip(filtered_specs, model_rows)
+            ):
+                ax = axes[row_idx][col_idx]
+                ax.imshow(pair_card(rgb_images[index_a], rgb_images[index_b], row["similarity"]))
+                ax.set_xticks([])
+                ax.set_yticks([])
+                if row_idx == 0:
+                    ax.set_title(f"Pair {col_idx + 1}", fontsize=8, pad=3)
 
-            color = "#6bd34a" if match_type == "positive" else "#ff3b30"
-            for spine in ax.spines.values():
-                spine.set_visible(True)
-                spine.set_linewidth(4)
-                spine.set_edgecolor(color)
+                for spine in ax.spines.values():
+                    spine.set_visible(True)
+                    spine.set_linewidth(2.5)
+                    spine.set_edgecolor(color)
 
-            if row_idx == 0:
-                ax.text(
-                    0.5,
-                    1.24,
-                    match_type.title(),
-                    transform=ax.transAxes,
-                    ha="center",
-                    va="bottom",
-                    fontsize=13,
-                    fontweight="bold",
-                    color=color,
-                )
-            if col_idx == 0:
-                ax.set_ylabel(model, fontsize=14, fontweight="bold")
+                if col_idx == 0:
+                    ax.set_ylabel(
+                        model,
+                        fontsize=8.5,
+                        fontweight="bold",
+                        rotation=0,
+                        ha="right",
+                        va="center",
+                        labelpad=20,
+                    )
 
-    fig.suptitle(
-        "Positive vs Negative ReID Similarities by Tracker",
-        fontsize=18,
-        fontweight="bold",
-    )
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=180)
-    plt.close(fig)
+        fig.suptitle(title, fontsize=11, fontweight="bold", y=0.99)
+        fig.text(0.5, 0.95, subtitle, ha="center", va="top", fontsize=8.5)
+        fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.998))
+        fig.subplots_adjust(hspace=0.02, wspace=0.01)
+        fig.savefig(split_output_path, dpi=220, bbox_inches="tight", pad_inches=0.08)
+        plt.close(fig)
+        outputs.append(split_output_path)
+
+    return outputs
 
 
 def main():
     args = parse_args()
 
     import torch
-    from ultralytics import YOLO
-
-    StrongSORT = load_class_from_file(
-        "crop_similarity_strongsort",
-        ROOT / "reid_modules" / "strongsort.py",
-        "StrongSORT",
-    )
-    LITE = load_class_from_file(
-        "crop_similarity_lite",
-        ROOT / "reid_modules" / "lite.py",
-        "LITE",
-    )
 
     device = args.device
     if device == "auto":
@@ -383,20 +455,18 @@ def main():
 
     crop_images = [read_crop(path) for path in args.crops]
 
-    strongsort = StrongSORT(device=device)
-    yolo = YOLO(args.yolo_model)
-    yolo.to(device)
-    lite_strongsort = LITE(
-        model=yolo,
-        appearance_feature_layer=args.appearance_feature_layer,
-        imgsz=args.imgsz,
-        conf=args.conf,
-        device=device,
+    reid_models = load_reid_models(
+        args.models,
+        device,
+        args.yolo_model,
+        args.appearance_feature_layer,
+        args.imgsz,
+        args.conf,
     )
 
     features = {
-        "StrongSORT": [extract_one(strongsort, image) for image in crop_images],
-        "LITEStrongSORT": [extract_one(lite_strongsort, image) for image in crop_images],
+        model_name: [extract_one(reid_model, image) for image in crop_images]
+        for model_name, reid_model in reid_models.items()
     }
 
     pair_specs = get_identity4_specs() if mode == "identity4" else get_query_specs(args.crops)
@@ -404,19 +474,22 @@ def main():
 
     rows = [row for model_rows in rows_by_model.values() for row in model_rows]
 
+    saved_plots = []
     if args.plot:
         if mode == "identity4":
-            save_identity_plot(rows_by_model, args.crops, pair_specs, args.plot)
+            saved_plots = save_identity_plots(rows_by_model, args.crops, pair_specs, args.plot)
         else:
             save_plot(rows_by_model, args.crops, args.plot)
+            saved_plots = [args.plot]
 
     if args.json:
         print(json.dumps(rows, indent=2))
     else:
         print_text(rows)
-        if args.plot:
+        if saved_plots:
             print()
-            print(f"Saved plot: {args.plot}")
+            for saved_plot in saved_plots:
+                print(f"Saved plot: {saved_plot}")
 
 
 if __name__ == "__main__":

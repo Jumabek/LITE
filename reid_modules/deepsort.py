@@ -139,6 +139,7 @@ class DeepSORTApperanceExtractor(object):
         state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)[
             'net_dict']
         self.net.load_state_dict(state_dict)
+        self.net.eval()
         logger = logging.getLogger("root.tracker")
         logger.debug("Loading weights from {}... Done!".format(model_path))
         self.net.to(self.device)
@@ -179,6 +180,7 @@ class DeepSORTApperanceExtractorOriginal(object):
         state_dict = torch.load(model_path, map_location=lambda storage, loc: storage)[
             'net_dict']
         self.net.load_state_dict(state_dict)
+        self.net.eval()
         logger = logging.getLogger("root.tracker")
         logger.info("Loading weights from {}... Done!".format(model_path))
         self.net.to(self.device)
