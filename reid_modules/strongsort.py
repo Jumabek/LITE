@@ -26,6 +26,7 @@ class StrongSORT:
         cfg.MODEL.WEIGHTS = model_weights
         model = build_model(cfg)
         #model.heads = build_heads(cfg, model.backbone.output_shape())
+        model.to(self.device)
         model.eval()
         Checkpointer(model).load(cfg.MODEL.WEIGHTS)
 
@@ -51,8 +52,9 @@ class StrongSORT:
         ]
 
         for i in range(0, len(crops), self.batch_size):
-            batch = torch.stack(crops[i:i + self.batch_size]).cuda()
-            features = self.model(batch).detach().cpu().numpy()
+            batch = torch.stack(crops[i:i + self.batch_size]).to(self.device)
+            with torch.no_grad():
+                features = self.model(batch).detach().cpu().numpy()
             features_list.extend(features)
 
         return features_list

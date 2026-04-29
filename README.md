@@ -1,218 +1,305 @@
-# LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration
+# LITE: Efficient ReID Feature Integration for Multi-Object Tracking
 
-> [**LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration**](http://www.arxiv.org/abs/2409.04187v2)
-> 
-> Jumabek Alikhanov, Dilshod Obidov, Hakil Kim
-> 
-> *[arXiv 2409.04187](http://www.arxiv.org/abs/2409.04187v2)*
-> 
-> *![Published at ICONIP2024](assets/ICONIP2024_Certificate_of_Presentation_Paper_1.pdf)*
-> 
-> Download the full paper from this repo: [docs/LITE.pdf](docs/LITE.pdf)
->
-> Keywords: multi-object tracking, MOT, object tracking, ReID, computer vision, real-time tracking, LITE, arXiv 2409.04187
+This repository contains the implementation used for:
 
+- [LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration](http://www.arxiv.org/abs/2409.04187v2), ICONIP 2024
+- [Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance](https://doi.org/10.1109/ACCESS.2025.3541177), IEEE Access 2025
 
-# Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance
+Authors: Jumabek Alikhanov, Dilshod Obidov, Mirsaid Abdurasulov, Hakil Kim
 
-> [**Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance**](https://doi.org/10.1109/ACCESS.2025.3541177)  
-> 
-> Jumabek Alikhanov, Dilshod Obidov, Mirsaid Abdurasulov, Hakil Kim
-> 
-> *IEEE Access, vol. 13, pp. 34768–34788, 2025*
-> 
-> Download the full paper from this repo: [docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf](docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf)
->
-> Keywords: Multiple object tracking (MOT), real-time tracking, evaluation framework, LITE, ReID, performance evaluation
-> 
-## Overview
+Paper PDFs are included in [docs/LITE.pdf](docs/LITE.pdf) and [docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf](docs/Practical_Evaluation_Framework_for_Real-Time_Multi-Object_Tracking_Achieving_Optimal_and_Realistic_Performance.pdf).
 
-LITE (Lightweight Integrated Tracking-Feature Extraction) introduces a groundbreaking approach to enhance ReID-based Multi-Object Tracking (MOT) systems. By integrating appearance feature extraction directly into the detection pipeline, LITE significantly improves computational efficiency while maintaining robust performance. Utilizing CNN-based object detectors like YOLOv8 and YOLO11, LITE enables real-time tracking, making it ideal for resource-constrained environments.
-
----
 ![Efficient ReID feature extraction via the LITE paradigm](assets/Fig02-6390.png)
 
-## Key Features
+## Overview
 
-- **Efficient Integration**: Combines appearance feature extraction within the detection process.
-- **Lightweight Design**: Tailored for real-time applications on resource-limited devices.
-- **Performance Optimization**: Demonstrates notable FPS improvements across multiple trackers while retaining competitive accuracy.
+LITE (Lightweight Integrated Tracking-Feature Extraction) extracts appearance features directly from intermediate YOLO detector features instead of running a separate ReID network for every detection. The repository supports standard trackers and their LITE variants:
 
----
+- DeepSORT and LITE-DeepSORT
+- StrongSORT and LITE-StrongSORT
+- Deep OC-SORT and LITE-Deep OC-SORT
+- BoT-SORT and LITE-BoT-SORT
+- SORT, ByteTrack, and OC-SORT baselines
 
-## Experimental Results
+The paper results use YOLOv8m, input resolution 1280, person class only, confidence threshold 0.25, and `layer14` as the default LITE appearance feature layer unless otherwise stated.
 
-We evaluated LITE using **YOLOv8m** with the following settings:
+## Reported Results
 
-- **Confidence Threshold**: 0.25
-- **Input Resolution**: 1280
+| Tracker | MOT17 HOTA | MOT17 FPS | MOT20 HOTA | MOT20 FPS |
+|---|---:|---:|---:|---:|
+| DeepSORT | 43.7 | 10.5 | 24.4 | 8.5 |
+| StrongSORT | 44.5 | 4.5 | 26.1 | 2.6 |
+| Deep OC-SORT | 43.7 | 10.3 | 24.9 | 8.9 |
+| BoT-SORT | 40.8 | 10.6 | 21.1 | 9.4 |
+| LITE:DeepSORT | 43.0 | 26.7 | 25.2 | 15.9 |
+| LITE:StrongSORT | 42.4 | 29.7 | 25.2 | 22.9 |
+| LITE:Deep OC-SORT | 43.4 | 34.8 | 25.4 | 19.6 |
+| LITE:BoT-SORT | 40.8 | 38.2 | 21.1 | 31.8 |
 
-| Tracker              | MOT17 HOTA ↑ | MOT17 FPS ↑ | MOT20 HOTA ↑ | MOT20 FPS ↑ |
-|----------------------|------------------|----------------|------------------|----------------|
-| DeepSORT            | 43.7            | 10.5           | 24.4            | 8.5            |
-| StrongSORT          | 44.5            | 4.5            | 26.1            | 2.6            |
-| Deep OC-SORT        | 43.7            | 10.3           | 24.9            | 8.9            |
-| BoTSORT             | 40.8            | 10.6           | 21.1            | 9.4            |
-| **LITE:DeepSORT**   | 43.0            | 26.7           | 25.2            | 15.9           |
-| **LITE:StrongSORT** | 42.4            | 29.7           | 25.2            | 22.9           |
-| **LITE:Deep OC-SORT** | 43.4            | 34.8           | 25.4            | 19.6           |
-| **LITE:BoTSORT**    | 40.8            | 38.2           | 21.1            | 31.8           |
----
+Small FPS differences are expected across GPUs, CUDA versions, storage speed, and display/visualization settings. HOTA should be compared using the same TrackEval version, dataset split, confidence threshold, input size, and tracker configuration.
 
-## Installation
+## Environment
 
-Follow these steps to set up the LITE tracking system:
-
-### 1. Clone the Repository
+The experiments were developed for Python 3.10 with CUDA-enabled PyTorch. A clean setup is recommended:
 
 ```bash
-# Clone the LITE Tracker Repository
 git clone https://github.com/Jumabek/LITE.git
 cd LITE
-```
 
-### 2. Set Up Python Environment
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
 
-```bash
-# Create and activate a virtual environment
-python3.10 -m venv myenv
-source myenv/bin/activate
-
-# Install dependencies
+# Choose the PyTorch wheel that matches your CUDA driver.
+# This example uses CUDA 12.1.
+pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cu121
 pip install -r requirements.txt
+
+# Make local LITE, ultralytics, and yolo_tracking modules importable.
+export PYTHONPATH="$PWD:$PWD/yolo_tracking:$PYTHONPATH"
 ```
 
-### 3. Clone Additional Dependencies
+If you use a different CUDA version, install the matching `torch` and `torchvision` wheels first, then run `pip install -r requirements.txt`.
+
+## External Tools
+
+The repository includes local copies of the modified `ultralytics` and `yolo_tracking` code. For MOT metrics, clone TrackEval next to the project code:
 
 ```bash
-# Clone supplementary repositories
-git clone https://github.com/Jumabek/ultralytics.git
-git clone https://github.com/humblebeeintel/yolo_tracking.git
-git clone https://github.com/humblebeeintel/TrackEval
+git clone https://github.com/JonathonLuiten/TrackEval.git
 ```
 
-### 4. Set Up FastReID
+The evaluation commands below assume `TrackEval/` is in the repository root. If it is elsewhere, replace `TrackEval/scripts/run_mot_challenge.py` with your local path.
+
+## Datasets
+
+Download the prepared datasets with:
 
 ```bash
-bash scripts/setup_fastreid.sh
+bash scripts/download_datasets_from_gdrive.sh
 ```
 
----
+After extraction, the expected structure is:
 
-## Dataset Preparation
-
-Download the prepared datasets from [this link](https://console.cloud.google.com/storage/browser/hbai-general-data/2024/cv.lite/dataset) and organize them as follows:
-
-```plaintext
-LITE/datasets
-   |-- MOT
-   |   |-- train
-   |   |-- test
-   |-- PersonPath22
-   |   |-- test
-   |-- VIRAT-S
-   |   |-- train
-   |-- KITTI
-       |-- train
-       |-- test
+```text
+datasets/
+  MOT17/
+    train/MOT17-02-FRCNN/img1/...
+    train/MOT17-02-FRCNN/gt/gt.txt
+    test/...
+  MOT20/
+    train/MOT20-01/img1/...
+    train/MOT20-01/gt/gt.txt
+    test/...
+  PersonPath22/test/...
+  VIRAT-S/train/...
+  KITTI/train/...
 ```
 
----
+You can also download MOT17/MOT20 from the official MOTChallenge site and arrange the folders in the same layout.
 
 ## Checkpoints
 
-Download the required checkpoints from [this link](https://drive.google.com/file/d/15NBT6pnwzf43MsNu1QK_qC04Efxg0yTP/view?usp=sharing) and place them under `LITE/checkpoints`:
-
-```plaintext
-checkpoints
-└── FastReID
-    ├── bagtricks_S50.yml
-    ├── Base-bagtricks.yml
-    ├── deepsort
-    │   ├── ckpt.t7
-    │   └── original_ckpt.t7
-    └── DukeMTMC_BoT-S50.pth
-```
-
----
-
-## Running Experiments
-
-### 1. Run Tracking and ReID Experiments
+Download and extract ReID checkpoints with:
 
 ```bash
-bash scripts/run_experiment.sh -d <DATASET> -s <SPLIT> -t <TRACKER> -m <YOLO_MODEL>
-# TRACKER options: "SORT", "LITEDeepSORT", "DeepSORT", "StrongSORT", "LITEStrongSORT", "OCSORT", "Bytetrack", "DeepOCSORT", "LITEDeepOCSORT", "BoTSORT", "LITEBoTSORT"
-
-# YOLO_MODEL options: all models of YOLO from yolov8 to yolo11
+bash scripts/prepare_checkpoints.sh
 ```
 
-### 2. Running the ReID Evaluator
-```bash
-python reid.py --dataset <DATASET> --seq_name <SEQ_NAME>  --split <SPLIT>  --tracker <ReID_MODEL> --save
+The expected checkpoint layout is:
+
+```text
+checkpoints/
+  FastReID/
+    bagtricks_S50.yml
+    Base-bagtricks.yml
+    DukeMTMC_BoT-S50.pth
+    deepsort/
+      ckpt.t7
+      original_ckpt.t7
 ```
 
-## Demo
+YOLO weights such as `yolov8m.pt` are loaded from the repository root or downloaded automatically by Ultralytics when available.
 
-Comparison of Tracker and LITE versions. Tracker can be viewed on Google Drive.
-👉[![Watch the demo](https://drive.google.com/file/d/1Oe13xFO4aR5u6UQcNyIQwKwmbl2-iEDl/view?usp=drive_link)
+## Quick Smoke Test
 
-### Download demo videos
-
-```
-bash demo/download_solutions_demo_videos.sh
-```
-
-### Basic Tracking Demo
+Use the included video to verify the environment before running full benchmarks:
 
 ```bash
 python demo.py --source demo/VIRAT_S_010204_07_000942_000989.mp4
 ```
 
-### Object Counter & Heatmap
+This opens an OpenCV display window. Press `q` to stop. On a headless server, run the benchmark commands below instead.
 
-```bash
-python solutions.py \
---source videos/shortened_enterance.mp4 \
---solution object_counter heatmap
+## Reproducing Tracking Results
+
+The main wrapper is [scripts/run_experiment.sh](scripts/run_experiment.sh). It writes MOT-format predictions to:
+
+```text
+results/paper/<DATASET>-<SPLIT>/<TRACKER>__input_<SIZE>__conf_<CONF>__model_<YOLO>/data/<SEQUENCE>.txt
 ```
 
-### Parking Management
+Run a single paper-setting experiment:
 
 ```bash
-python solutions.py \
---source videos/parking.mp4 \
---solution parking_management
+bash scripts/run_experiment.sh \
+  -d MOT20 \
+  -s train \
+  -t LITEStrongSORT \
+  -m yolov8m \
+  -r 1280 \
+  -c 0.25 \
+  -o results/paper
 ```
 
----
+Run all MOT17/MOT20 trackers used in the table:
+
+```bash
+for dataset in MOT17 MOT20; do
+  for tracker in DeepSORT StrongSORT DeepOCSORT BoTSORT LITEDeepSORT LITEStrongSORT LITEDeepOCSORT LITEBoTSORT; do
+    bash scripts/run_experiment.sh \
+      -d "$dataset" \
+      -s train \
+      -t "$tracker" \
+      -m yolov8m \
+      -r 1280 \
+      -c 0.25 \
+      -o results/paper
+  done
+done
+```
+
+Equivalent direct command for LITE-DeepSORT:
+
+```bash
+python run.py \
+  --dataset MOT20 \
+  --split train \
+  --tracker_name LITEDeepSORT \
+  --input_resolution 1280 \
+  --min_confidence 0.25 \
+  --appearance_feature_layer layer14 \
+  --yolo_model yolov8m \
+  --dir_save results/paper/MOT20-train/LITEDeepSORT__input_1280__conf_0.25__model_yolov8m
+```
+
+For BoT-SORT and Deep OC-SORT variants, the wrapper calls `yolo_tracking/tracking/run.py` with the corresponding `--tracking-method` and optional `--appearance-feature-layer layer14`.
+
+## Evaluating HOTA, CLEAR, and IDF1
+
+Evaluate one dataset split with TrackEval:
+
+```bash
+python TrackEval/scripts/run_mot_challenge.py \
+  --BENCHMARK MOT20 \
+  --SPLIT_TO_EVAL train \
+  --TRACKERS_FOLDER results/paper/MOT20-train \
+  --GT_FOLDER datasets/MOT20/train \
+  --GT_LOC_FORMAT "{gt_folder}/{seq}/gt/gt.txt" \
+  --METRICS HOTA CLEAR Identity VACE \
+  --USE_PARALLEL True \
+  --NUM_PARALLEL_CORES 8 \
+  --OUTPUT_SUMMARY True \
+  --OUTPUT_DETAILED True \
+  --PLOT_CURVES True
+```
+
+For MOT17, replace `MOT20` with `MOT17` and use `results/paper/MOT17-train` plus `datasets/MOT17/train`.
+
+TrackEval writes summary files inside each tracker result directory. Use the `HOTA`, `MOTA`, and `IDF1` columns from those summaries when comparing with the paper table.
+
+## Measuring FPS
+
+The benchmark commands print per-sequence speed and write `fps.csv` for the `run.py` based trackers. For a controlled FPS comparison, keep the same GPU, CUDA version, image size, confidence threshold, batch behavior, and visualization setting across all trackers.
+
+Example single-sequence FPS run:
+
+```bash
+bash scripts/fps.sh -d MOT20 -s train -q MOT20-01
+```
+
+FPS outputs are saved below:
+
+```text
+results/<DATASET>-FPS/<SEQUENCE>/<TRACKER>__input_1280__conf_.25/fps.csv
+```
+
+## ReID Feature Evaluation
+
+Run the ReID evaluator on one sequence:
+
+```bash
+python reid.py \
+  --dataset MOT20 \
+  --seq_name MOT20-01 \
+  --split train \
+  --tracker LITE \
+  --appearance_feature_layer layer14 \
+  --output_path reid_results/MOT20-01 \
+  --save
+```
+
+Run all LITE layers:
+
+```bash
+bash scripts/run_reid_all_layers.sh
+```
+
+The evaluator saves ROC and similarity-distribution plots under the selected `--output_path`.
+
+## Demo Videos and Solutions
+
+Download extra demo videos:
+
+```bash
+bash demo/download_solutions_demo_videos.sh
+```
+
+Run object counting and heatmap demos:
+
+```bash
+python solutions.py --source videos/shortened_enterance.mp4 --solution object_counter
+python solutions.py --source videos/shortened_enterance.mp4 --solution heatmap
+```
+
+Run parking management:
+
+```bash
+python solutions.py --source videos/parking.mp4 --solution parking_management
+```
+
+Outputs are written to `demo_output_videos/`.
+
+## Troubleshooting
+
+- `ModuleNotFoundError` for local modules: run `export PYTHONPATH="$PWD:$PWD/yolo_tracking:$PYTHONPATH"` from the repository root.
+- CUDA or `faiss-gpu` installation errors: install a PyTorch/CUDA combination supported by your driver, or use a CUDA-enabled conda environment.
+- Missing `TrackEval`: clone TrackEval into the repository root or update the evaluation command path.
+- Missing dataset sequence: verify the exact folder names in `datasets/<DATASET>/<split>/`; MOT17 uses names such as `MOT17-02-FRCNN`.
+- GUI/OpenCV errors on a server: use non-demo benchmark commands or configure a virtual display.
 
 ## Citation
 
-If you use LITE in your research, please cite our work:
-
 ```bibtex
 @misc{alikhanov2024liteparadigmshiftmultiobject,
-      title={LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration}, 
-      author={Jumabek Alikhanov and Dilshod Obidov and Hakil Kim},
-      year={2024},
-      eprint={2409.04187},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2409.04187}, 
+  title={LITE: A Paradigm Shift in Multi-Object Tracking with Efficient ReID Feature Integration},
+  author={Jumabek Alikhanov and Dilshod Obidov and Hakil Kim},
+  year={2024},
+  eprint={2409.04187},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2409.04187}
 }
 ```
 
 ```bibtex
 @ARTICLE{10883969,
   author={Alikhanov, Jumabek and Obidov, Dilshod and Abdurasulov, Mirsaid and Kim, Hakil},
-  journal={IEEE Access}, 
-  title={Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance}, 
+  journal={IEEE Access},
+  title={Practical Evaluation Framework for Real-Time Multi-Object Tracking: Achieving Optimal and Realistic Performance},
   year={2025},
   volume={13},
-  number={},
   pages={34768-34788},
-  keywords={Tracking;Detectors;Pipelines;Training;Benchmark testing;Image edge detection;Feature extraction;Real-time systems;Cameras;Performance evaluation;Multiple object tracking (MOT);real-time tracking;evaluation framework;LITE;ReID},
-  doi={10.1109/ACCESS.2025.3541177}}
+  doi={10.1109/ACCESS.2025.3541177}
+}
 ```
-
